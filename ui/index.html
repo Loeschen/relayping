@@ -8,20 +8,11 @@
 <style>
 :root {
   color-scheme: light;
-  --page: #f4f5f7;
-  --surface: #fcfcfb;
-  --surface-2: #f0f1f3;
-  --ink: #0b0b0b;
-  --ink-2: #52514e;
-  --muted: #7d7b75;
-  --grid: #e1e0d9;
-  --axis: #c3c2b7;
-  --border: rgba(11,11,11,0.10);
-  --accent: #0f8f78;
-  --accent-ink: #ffffff;
-  --accent-soft: rgba(15,143,120,0.10);
-  --good: #0ca30c; --good-ink: #006300;
-  --warning: #fab219; --serious: #ec835a; --critical: #d03b3b;
+  --page: #f4f5f7; --surface: #fcfcfb; --surface-2: #f0f1f3;
+  --ink: #0b0b0b; --ink-2: #52514e; --muted: #7d7b75;
+  --grid: #e1e0d9; --axis: #c3c2b7; --border: rgba(11,11,11,0.10);
+  --accent: #0f8f78; --accent-ink: #ffffff; --accent-soft: rgba(15,143,120,0.10);
+  --good: #0ca30c; --good-ink: #006300; --warning: #fab219; --serious: #ec835a; --critical: #d03b3b;
   --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a; --s4: #eda100;
   --s5: #e87ba4; --s6: #008300; --s7: #4a3aa7; --s8: #e34948;
   --shadow: 0 1px 2px rgba(0,0,0,.04), 0 4px 16px rgba(0,0,0,.05);
@@ -29,18 +20,10 @@
 @media (prefers-color-scheme: dark) {
   :root {
     color-scheme: dark;
-    --page: #0e1116;
-    --surface: #161a21;
-    --surface-2: #1d222b;
-    --ink: #ffffff;
-    --ink-2: #c3c6cf;
-    --muted: #8a8f9a;
-    --grid: #252a33;
-    --axis: #353b46;
-    --border: rgba(255,255,255,0.09);
-    --accent: #3ee6c4;
-    --accent-ink: #06231d;
-    --accent-soft: rgba(62,230,196,0.10);
+    --page: #0e1116; --surface: #161a21; --surface-2: #1d222b;
+    --ink: #ffffff; --ink-2: #c3c6cf; --muted: #8a8f9a;
+    --grid: #252a33; --axis: #353b46; --border: rgba(255,255,255,0.09);
+    --accent: #3ee6c4; --accent-ink: #06231d; --accent-soft: rgba(62,230,196,0.10);
     --good-ink: #2fc42f;
     --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500;
     --s5: #d55181; --s6: #008300; --s7: #9085e9; --s8: #e66767;
@@ -52,20 +35,19 @@ html, body { margin: 0; background: var(--page); color: var(--ink); }
 body { font: 14px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; min-height: 100vh; }
 button, input, select { font: inherit; color: inherit; }
 .num { font-variant-numeric: tabular-nums; }
-.wrap { max-width: 1240px; margin: 0 auto; padding: 0 24px 40px; }
+.wrap { max-width: 1280px; margin: 0 auto; padding: 0 24px 40px; }
+[hidden] { display: none !important; }
 
-/* Kopfzeile */
 header { position: sticky; top: 0; z-index: 20; background: color-mix(in srgb, var(--page) 88%, transparent); backdrop-filter: blur(10px); border-bottom: 1px solid var(--border); }
-header .wrap { display: flex; align-items: center; gap: 16px; padding-top: 12px; padding-bottom: 12px; }
-.brand { display: flex; align-items: center; gap: 10px; font-weight: 650; font-size: 16px; letter-spacing: -.01em; }
+header .wrap { display: flex; align-items: center; gap: 14px; padding-top: 12px; padding-bottom: 12px; }
+.brand { display: flex; align-items: center; gap: 10px; font-weight: 650; font-size: 16px; letter-spacing: -.01em; white-space: nowrap; }
 .brand svg { width: 28px; height: 28px; }
 .status { display: flex; align-items: center; gap: 8px; padding: 5px 12px 5px 10px; border-radius: 999px; background: var(--surface); border: 1px solid var(--border); color: var(--ink-2); font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
 .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); flex: none; }
 .dot.ok { background: var(--good); box-shadow: 0 0 0 3px color-mix(in srgb, var(--good) 25%, transparent); }
-.dot.bad { background: var(--critical); }
-.dot.wait { background: var(--warning); }
+.dot.bad { background: var(--critical); } .dot.wait { background: var(--warning); }
 .spacer { flex: 1; }
-.btn { border: 1px solid var(--border); background: var(--surface); padding: 7px 14px; border-radius: 9px; cursor: pointer; transition: background .15s, border-color .15s; white-space: nowrap; }
+.btn { border: 1px solid var(--border); background: var(--surface); padding: 7px 14px; border-radius: 9px; cursor: pointer; transition: background .15s; white-space: nowrap; }
 .btn:hover { background: var(--surface-2); }
 .btn:disabled { opacity: .45; cursor: not-allowed; }
 .btn.primary { background: var(--accent); color: var(--accent-ink); border-color: transparent; font-weight: 600; }
@@ -74,27 +56,45 @@ header .wrap { display: flex; align-items: center; gap: 16px; padding-top: 12px;
 .btn.ghost:hover { background: var(--surface-2); color: var(--ink); }
 .btn.small { padding: 4px 10px; font-size: 12.5px; border-radius: 7px; }
 .icon-btn { width: 34px; height: 34px; display: grid; place-items: center; padding: 0; }
+.soon { font-size: 11px; padding: 2px 7px; border-radius: 999px; background: var(--surface-2); color: var(--muted); border: 1px solid var(--border); font-weight: 500; }
 
-/* Tunnel-Leiste */
-.tunnels { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px; margin: 22px 0 6px; }
-.tunnel { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 16px 18px; box-shadow: var(--shadow); display: grid; grid-template-columns: 1fr auto; gap: 4px 16px; align-items: center; }
+/* Hinweise */
+.banners { display: grid; gap: 10px; margin-top: 18px; }
+.banner { display: flex; align-items: center; gap: 12px; padding: 11px 14px; border-radius: 12px; border: 1px solid var(--border); background: var(--surface); box-shadow: var(--shadow); }
+.banner.warn { border-color: color-mix(in srgb, var(--critical) 45%, var(--border)); background: color-mix(in srgb, var(--critical) 7%, var(--surface)); }
+.banner.info { border-color: color-mix(in srgb, var(--accent) 45%, var(--border)); }
+.banner .ic { width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; font-weight: 700; flex: none; font-size: 13px; }
+.banner.warn .ic { background: var(--critical); color: #fff; }
+.banner.info .ic { background: var(--accent); color: var(--accent-ink); }
+.banner .txt { flex: 1; min-width: 0; }
+.banner .meta { color: var(--muted); font-size: 12px; }
+
+/* Tunnel */
+.tunnels { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 14px; margin: 18px 0 0; }
+.tunnel { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 16px 18px; box-shadow: var(--shadow); display: grid; grid-template-columns: 1fr auto; gap: 3px 16px; align-items: center; }
 .tunnel .label { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); font-weight: 600; }
 .tunnel .server { font-size: 17px; font-weight: 650; }
 .tunnel .meta { color: var(--ink-2); font-size: 13px; }
 .tunnel .big { grid-row: 1 / span 3; grid-column: 2; text-align: right; }
 .tunnel .big .v { font-size: 30px; font-weight: 650; letter-spacing: -.02em; }
 .tunnel .big .u { color: var(--muted); font-size: 13px; margin-left: 2px; }
+.tunnel .health { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: 12.5px; color: var(--ink-2); margin-top: 8px; }
+.tunnel .health .bad { color: var(--critical); font-weight: 600; }
+.tunnel .speedline { grid-column: 1 / -1; display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; font-size: 12.5px; color: var(--ink-2); margin-top: 8px; }
+.tunnel .speedline b { color: var(--ink); }
+.speedbar { width: 90px; height: 5px; border-radius: 3px; background: var(--surface-2); overflow: hidden; }
+.speedbar i { display: block; height: 100%; background: var(--accent); transition: width .5s; }
 .tunnel .hint { grid-column: 1 / -1; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border); display: flex; align-items: center; gap: 10px; flex-wrap: wrap; font-size: 13px; color: var(--ink-2); }
 .tunnel .hint b { color: var(--ink); font-weight: 600; }
-.soon { font-size: 11px; padding: 2px 7px; border-radius: 999px; background: var(--surface-2); color: var(--muted); border: 1px solid var(--border); }
+.routerbar { display: flex; flex-wrap: wrap; gap: 6px 22px; align-items: center; margin-top: 12px; padding: 9px 14px; border-radius: 12px; background: var(--surface); border: 1px solid var(--border); font-size: 12.5px; color: var(--ink-2); }
+.routerbar b { color: var(--ink); font-weight: 600; }
+.meter { display: inline-block; width: 46px; height: 5px; border-radius: 3px; background: var(--surface-2); vertical-align: middle; margin-left: 6px; overflow: hidden; }
+.meter i { display: block; height: 100%; background: var(--s1); }
 
-/* Reiter */
 .tabs { display: flex; gap: 4px; margin: 22px 0 14px; border-bottom: 1px solid var(--border); }
 .tab { background: none; border: 0; padding: 10px 14px; cursor: pointer; color: var(--ink-2); font-weight: 550; border-bottom: 2px solid transparent; margin-bottom: -1px; }
 .tab[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--accent); }
-.panel[hidden] { display: none !important; }
 
-/* Steuerzeile */
 .controls { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-bottom: 14px; }
 .seg { display: inline-flex; background: var(--surface); border: 1px solid var(--border); border-radius: 9px; padding: 3px; }
 .seg button { border: 0; background: none; padding: 5px 11px; border-radius: 6px; cursor: pointer; color: var(--ink-2); font-size: 13px; }
@@ -102,9 +102,8 @@ header .wrap { display: flex; align-items: center; gap: 16px; padding-top: 12px;
 .field { display: flex; align-items: center; gap: 8px; }
 input[type=text], input[type=password], input[type=number], select { background: var(--surface); border: 1px solid var(--border); border-radius: 9px; padding: 7px 11px; outline: none; }
 input:focus, select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
-.search { min-width: 260px; }
+.search { min-width: 240px; }
 
-/* Karten */
 .card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; box-shadow: var(--shadow); }
 .chart-card { padding: 16px 16px 10px; }
 .chart-head { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; margin: 0 4px 8px; }
@@ -120,15 +119,15 @@ input:focus, select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px v
 .tip .row { display: flex; align-items: center; gap: 8px; padding: 1px 0; }
 .tip .row b { min-width: 58px; text-align: right; font-weight: 650; }
 .tip .row .n { color: var(--ink-2); }
-.empty { padding: 50px 20px; text-align: center; color: var(--muted); }
+.empty { padding: 44px 20px; text-align: center; color: var(--muted); }
 
 .mons { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 14px; margin-top: 14px; }
-.mon { padding: 14px 16px; position: relative; }
+.mon { padding: 14px 16px; }
 .mon .top { display: flex; align-items: center; gap: 8px; }
 .mon .host { font-weight: 650; }
 .mon .city { color: var(--ink-2); font-size: 12.5px; margin-top: 1px; }
-.mon .x { margin-left: auto; width: 26px; height: 26px; border-radius: 7px; border: 0; background: none; color: var(--muted); cursor: pointer; font-size: 16px; line-height: 1; }
-.mon .x:hover { background: var(--surface-2); color: var(--ink); }
+.x { margin-left: auto; width: 26px; height: 26px; border-radius: 7px; border: 0; background: none; color: var(--muted); cursor: pointer; font-size: 16px; line-height: 1; }
+.x:hover { background: var(--surface-2); color: var(--ink); }
 .mon .now { display: flex; align-items: baseline; gap: 4px; margin: 10px 0 8px; }
 .mon .now .v { font-size: 28px; font-weight: 650; letter-spacing: -.02em; }
 .mon .now .u { color: var(--muted); font-size: 13px; }
@@ -141,52 +140,72 @@ input:focus, select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px v
 .badge.best { background: color-mix(in srgb, var(--good) 14%, transparent); color: var(--good-ink); }
 .warn-loss { color: var(--critical); font-weight: 600; display: inline-flex; align-items: center; gap: 3px; }
 
-/* Rangliste */
+/* Bestenliste */
+.heroes { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; margin-bottom: 14px; }
+.hero { padding: 16px 18px; }
+.hero .k { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); font-weight: 600; }
+.hero .h { font-size: 20px; font-weight: 700; margin-top: 4px; }
+.hero .m { color: var(--ink-2); font-size: 13px; }
+.hero .v { font-size: 30px; font-weight: 650; letter-spacing: -.02em; }
+.hero .row { display: flex; align-items: flex-end; justify-content: space-between; gap: 10px; }
+.boardinfo { color: var(--muted); font-size: 12.5px; }
 .chips { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
 .chip { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--border); background: var(--surface); border-radius: 999px; padding: 4px 6px 4px 12px; font-size: 13px; }
 .chip button { border: 0; background: none; color: var(--muted); cursor: pointer; width: 20px; height: 20px; border-radius: 50%; }
 .chip button:hover { background: var(--surface-2); color: var(--ink); }
 .progress { height: 4px; background: var(--surface-2); border-radius: 4px; overflow: hidden; margin: 0 0 14px; }
 .progress div { height: 100%; width: 0; background: var(--accent); transition: width .3s; }
-.ctabs { display: flex; gap: 6px; margin: 0 0 10px; flex-wrap: wrap; }
+.ctabs { display: flex; gap: 6px; margin: 0 0 10px; flex-wrap: wrap; padding: 8px 8px 0; }
 .table-wrap { overflow-x: auto; }
 table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
 th { text-align: left; font-weight: 600; color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .04em; padding: 10px 12px; border-bottom: 1px solid var(--border); cursor: pointer; user-select: none; white-space: nowrap; }
 th.r, td.r { text-align: right; }
 th[aria-sort]::after { content: " ↓"; color: var(--accent); }
 th[aria-sort="descending"]::after { content: " ↑"; }
-td { padding: 9px 12px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+td { padding: 8px 12px; border-bottom: 1px solid var(--border); white-space: nowrap; }
 tr:hover td { background: color-mix(in srgb, var(--surface-2) 60%, transparent); }
 tr.active td { background: var(--accent-soft); }
 .barcell { display: flex; align-items: center; justify-content: flex-end; gap: 8px; }
 .bar { height: 6px; border-radius: 3px; background: var(--s1); opacity: .85; }
 .muted { color: var(--muted); }
+.spark { display: block; }
+.actions { display: inline-flex; gap: 6px; align-items: center; }
+.handshake-idle { color: var(--muted); }
 
 footer { margin-top: 28px; display: flex; flex-wrap: wrap; gap: 10px 22px; align-items: center; color: var(--muted); font-size: 12.5px; }
-.disclaimer { flex-basis: 100%; font-size: 11.5px; }
-footer a, .link { color: var(--ink-2); text-decoration: underline; text-underline-offset: 2px; cursor: pointer; background: none; border: 0; padding: 0; font-size: inherit; }
+.link { color: var(--ink-2); text-decoration: underline; text-underline-offset: 2px; cursor: pointer; background: none; border: 0; padding: 0; font-size: inherit; }
 .toggle { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; }
 .toggle input { accent-color: var(--accent); width: 16px; height: 16px; }
+.disclaimer { flex-basis: 100%; font-size: 11.5px; }
 
-/* Dialoge */
 .overlay { position: fixed; inset: 0; background: rgba(5,8,12,.55); backdrop-filter: blur(3px); display: grid; place-items: center; z-index: 50; padding: 20px; }
-.overlay[hidden] { display: none; }
-.dialog { width: min(460px, 100%); background: var(--surface); border: 1px solid var(--border); border-radius: 16px; box-shadow: 0 20px 60px rgba(0,0,0,.35); padding: 24px; }
+.dialog { width: min(480px, 100%); max-height: calc(100vh - 40px); overflow: auto; background: var(--surface); border: 1px solid var(--border); border-radius: 16px; box-shadow: 0 20px 60px rgba(0,0,0,.35); padding: 24px; }
+.dialog.wide { width: min(620px, 100%); }
 .dialog h2 { margin: 0 0 6px; font-size: 18px; }
-.dialog p { margin: 0 0 16px; color: var(--ink-2); }
-.dialog label { display: block; font-size: 12.5px; color: var(--ink-2); margin: 12px 0 5px; font-weight: 550; }
-.dialog input { width: 100%; }
+.dialog h4 { margin: 18px 0 6px; font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+.dialog p { margin: 0 0 14px; color: var(--ink-2); }
+.dialog label.l { display: block; font-size: 12.5px; color: var(--ink-2); margin: 12px 0 5px; font-weight: 550; }
+.dialog .full { width: 100%; }
 .row2 { display: grid; grid-template-columns: 1fr 90px 110px; gap: 10px; }
+.setrow { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 0; border-bottom: 1px solid var(--border); }
+.setrow:last-child { border-bottom: 0; }
+.setrow .d { color: var(--muted); font-size: 12px; }
 .dialog .actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
 .err { color: var(--critical); background: color-mix(in srgb, var(--critical) 10%, transparent); border-radius: 9px; padding: 9px 12px; margin-top: 14px; font-size: 13px; }
-.err[hidden] { display: none; }
 .note { font-size: 12.5px; color: var(--muted); margin-top: 12px; }
 .kv { display: grid; grid-template-columns: auto 1fr; gap: 6px 14px; font-size: 13px; margin: 8px 0 4px; }
 .kv .k { color: var(--muted); }
 .mono { font-family: ui-monospace, "Cascadia Mono", Consolas, monospace; font-size: 12px; word-break: break-all; }
 .toast { position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%); background: var(--ink); color: var(--page); padding: 10px 16px; border-radius: 10px; font-size: 13px; z-index: 60; box-shadow: var(--shadow); max-width: 90vw; }
-.toast[hidden] { display: none; }
-@media (max-width: 640px) { .wrap { padding: 0 14px 30px; } .search { min-width: 0; flex: 1; } .status .extra { display: none; } }
+.swto { display: flex; align-items: center; gap: 10px; margin: 6px 0 2px; font-size: 15px; }
+.swto b { font-weight: 650; }
+@media (max-width: 640px) {
+  .wrap { padding: 0 14px 30px; } .search { min-width: 0; flex: 1; }
+  header .wrap { gap: 8px; } .brand .soon { display: none; }
+  .status #statusText { display: none; } .status { padding: 7px; }
+  .banner { flex-wrap: wrap; } .banner .txt { flex: 1 1 calc(100% - 70px); }
+  .banner .btn { order: 3; margin-left: 34px; }
+}
 </style>
 </head>
 <body>
@@ -194,126 +213,194 @@ footer a, .link { color: var(--ink-2); text-decoration: underline; text-underlin
   <div class="wrap">
     <div class="brand">
       <svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="8" fill="var(--surface-2)"/><path d="M5 21h5l3-9 4 13 3-8h7" fill="none" stroke="var(--accent)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      RelayPing <span class="soon" title="Vorabversion">Beta</span>
+      RelayPing <span class="soon">Beta</span>
     </div>
-    <div class="status" id="status"><span class="dot" id="statusDot"></span><span id="statusText">Starte …</span></div>
+    <div class="status"><span class="dot" id="statusDot"></span><span id="statusText">…</span></div>
     <div class="spacer"></div>
-    <button class="btn ghost icon-btn" id="btnSettings" title="Einstellungen" aria-label="Einstellungen">
+    <button class="btn ghost icon-btn" id="btnSettings" data-i18n-title="settings" data-i18n-aria="settings">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
     </button>
-    <button class="btn small" id="btnQuit" title="Programm beenden">Beenden</button>
+    <button class="btn small" id="btnQuit" data-i18n="quit">Beenden</button>
   </div>
 </header>
 
 <main class="wrap">
-  <section class="tunnels" id="tunnels" aria-label="Aktive Tunnel"></section>
+  <section class="banners" id="banners"></section>
+  <section class="tunnels" id="tunnels"></section>
+  <div class="routerbar" id="routerbar" hidden></div>
 
   <nav class="tabs" role="tablist">
-    <button class="tab" role="tab" id="tabLive" aria-selected="true" aria-controls="panelLive">Live</button>
-    <button class="tab" role="tab" id="tabScan" aria-selected="false" aria-controls="panelScan">Rangliste</button>
+    <button class="tab" role="tab" data-tab="live" aria-selected="true" data-i18n="tabLive">Live</button>
+    <button class="tab" role="tab" data-tab="board" aria-selected="false" data-i18n="tabBoard">Bestenliste</button>
+    <button class="tab" role="tab" data-tab="scan" aria-selected="false" data-i18n="tabScan">Rangliste</button>
   </nav>
 
-  <section class="panel" id="panelLive" role="tabpanel">
+  <!-- LIVE -->
+  <section class="panel" id="panel-live">
     <div class="controls">
-      <div class="seg" role="group" aria-label="Zeitraum" id="rangeSeg">
-        <button data-s="60" aria-pressed="false">1 Min</button>
-        <button data-s="300" aria-pressed="true">5 Min</button>
-        <button data-s="900" aria-pressed="false">15 Min</button>
+      <div class="seg" id="rangeSeg">
+        <button data-s="60" aria-pressed="false" data-i18n="min1">1 Min</button>
+        <button data-s="300" aria-pressed="true" data-i18n="min5">5 Min</button>
+        <button data-s="900" aria-pressed="false" data-i18n="min15">15 Min</button>
       </div>
+      <div class="seg" id="scaleSeg" data-i18n-title="scaleHelp">
+        <button data-v="auto" data-i18n="scaleAuto">Auto</button>
+        <button data-v="lin" data-i18n="scaleLin">Linear</button>
+        <button data-v="log" data-i18n="scaleLog">Log</button>
+      </div>
+      <select id="favSel" aria-label="Favoriten"></select>
       <div class="spacer"></div>
       <div class="field">
-        <input type="text" class="search" id="addInput" list="relayList" placeholder="Server hinzufügen, z. B. de-fra oder Stockholm" autocomplete="off">
+        <input type="text" class="search" id="addInput" list="relayList" data-i18n-ph="addPh" autocomplete="off">
         <datalist id="relayList"></datalist>
-        <button class="btn" id="btnAdd">Live beobachten</button>
+        <button class="btn" id="btnAdd" data-i18n="watchLive">Live beobachten</button>
       </div>
     </div>
     <div class="card chart-card">
-      <div class="chart-head">
-        <h3>Latenz in ms</h3>
-        <div class="legend" id="legend"></div>
-      </div>
+      <div class="chart-head"><h3 data-i18n="latencyMs">Latenz in ms</h3><div class="legend" id="legend"></div></div>
       <div class="chart-box" id="chartBox">
-        <canvas id="chart" role="img" aria-label="Live-Latenz der beobachteten Server"></canvas>
+        <canvas id="chart" role="img"></canvas>
         <div class="tip" id="tip" hidden></div>
-        <div class="empty" id="chartEmpty" hidden>Noch keine Server live. Oben einen Server hinzufügen oder in der Rangliste auf „Live" klicken.</div>
+        <div class="empty" id="chartEmpty" hidden data-i18n="chartEmpty"></div>
       </div>
     </div>
     <div class="mons" id="mons"></div>
   </section>
 
-  <section class="panel" id="panelScan" role="tabpanel" hidden>
+  <!-- BESTENLISTE -->
+  <section class="panel" id="panel-board" hidden>
+    <div class="controls">
+      <div class="chips" id="bChips"></div>
+      <select id="bAdd" aria-label="Land"></select>
+      <div class="spacer"></div>
+      <label class="field muted"><span data-i18n="every">alle</span>
+        <select id="bInterval"><option value="5">5 s</option><option value="10">10 s</option><option value="30">30 s</option><option value="60">60 s</option></select>
+      </label>
+      <label class="toggle"><input type="checkbox" id="bOn"> <span data-i18n="boardOn">läuft</span></label>
+    </div>
+    <div class="heroes" id="heroes"></div>
+    <div class="card" style="padding: 6px 6px 4px;">
+      <div class="boardinfo" id="bInfo" style="padding: 8px 12px 2px;"></div>
+      <div class="table-wrap">
+        <table id="boardTable">
+          <thead><tr>
+            <th data-k="rank" class="r">#</th>
+            <th data-k="host" data-i18n="colServer">Server</th>
+            <th data-k="city" data-i18n="colCity">Stadt</th>
+            <th data-k="now" class="r" data-i18n="colNow">Jetzt</th>
+            <th data-k="median" class="r" data-i18n="colMedian">Median</th>
+            <th data-k="jitter" class="r" data-i18n="colJitter">Jitter</th>
+            <th data-k="loss" class="r" data-i18n="colLoss">Verlust</th>
+            <th data-i18n="colTrend">Verlauf</th>
+            <th data-k="stability" class="r" data-i18n="colStab">Stabil</th>
+            <th data-k="speed" class="r" data-i18n="colPort">Port</th>
+            <th></th>
+          </tr></thead>
+          <tbody id="boardBody"></tbody>
+        </table>
+      </div>
+      <div class="empty" id="boardEmpty"></div>
+    </div>
+  </section>
+
+  <!-- RANGLISTE -->
+  <section class="panel" id="panel-scan" hidden>
     <div class="controls">
       <div class="chips" id="ccChips"></div>
-      <select id="ccAdd" aria-label="Land hinzufügen"><option value="">+ Land</option></select>
+      <select id="ccAdd" aria-label="Land"></select>
       <div class="spacer"></div>
-      <label class="field muted">Pings pro Server
+      <span class="boardinfo" id="autoInfo"></span>
+      <label class="field muted"><span data-i18n="pingsPer">Pings pro Server</span>
         <select id="pings"><option>10</option><option selected>20</option><option>30</option><option>50</option></select>
       </label>
-      <button class="btn primary" id="btnScan">Messen</button>
+      <button class="btn primary" id="btnScan" data-i18n="measure">Messen</button>
     </div>
     <div class="progress" id="progress" hidden><div></div></div>
     <div class="card" style="padding: 8px 6px 4px;">
-      <div class="ctabs" id="ctabs" style="padding: 8px 8px 0;"></div>
+      <div class="ctabs" id="ctabs"></div>
       <div class="table-wrap">
         <table id="scanTable">
           <thead><tr>
             <th data-k="rank" class="r">#</th>
-            <th data-k="host">Server</th>
-            <th data-k="city">Stadt</th>
-            <th data-k="avg" class="r">Mittel</th>
-            <th data-k="jitter" class="r">Jitter</th>
+            <th data-k="host" data-i18n="colServer">Server</th>
+            <th data-k="city" data-i18n="colCity">Stadt</th>
+            <th data-k="avg" class="r" data-i18n="colAvg">Mittel</th>
+            <th data-k="jitter" class="r" data-i18n="colJitter">Jitter</th>
             <th data-k="min" class="r">Min</th>
             <th data-k="max" class="r">Max</th>
-            <th data-k="loss" class="r">Verlust</th>
-            <th data-k="owned">Betreiber</th>
+            <th data-k="loss" class="r" data-i18n="colLoss">Verlust</th>
+            <th data-k="stability" class="r" data-i18n="colStab">Stabil</th>
+            <th data-k="speed" class="r" data-i18n="colPort">Port</th>
             <th></th>
           </tr></thead>
           <tbody id="scanBody"></tbody>
         </table>
       </div>
-      <div class="empty" id="scanEmpty">Noch keine Messung. Länder wählen und auf „Messen" klicken – jeder Server wird vom Router aus angepingt, am Tunnel vorbei.</div>
+      <div class="empty" id="scanEmpty" data-i18n="scanEmpty"></div>
     </div>
   </section>
 
   <footer>
-    <span id="relayInfo">Serverliste wird geladen …</span>
-    <button class="link" id="btnRefreshRelays">Aktualisieren</button>
+    <span id="relayInfo"></span>
+    <button class="link" id="btnRefreshRelays" data-i18n="refresh">Aktualisieren</button>
     <span class="spacer"></span>
-    <label class="toggle"><input type="checkbox" id="csvToggle"> Verlauf als CSV speichern</label>
-    <button class="link" id="btnOpenData">Ordner öffnen</button>
-    <span class="disclaimer">Inoffizielles Community-Tool · nicht mit Mullvad VPN AB oder GL.iNet verbunden</span>
+    <label class="toggle"><input type="checkbox" id="csvToggle"> <span data-i18n="csv">Verlauf als CSV speichern</span></label>
+    <button class="link" id="btnOpenData" data-i18n="openFolder">Ordner öffnen</button>
+    <span class="disclaimer" data-i18n="disclaimer"></span>
   </footer>
 </main>
 
 <!-- Verbinden -->
 <div class="overlay" id="connectDlg" hidden>
   <form class="dialog" id="connectForm" autocomplete="off">
-    <h2>Mit dem GL.iNet-Router verbinden</h2>
-    <p>Einmalig mit dem Passwort des GL.iNet-Admin-Panels anmelden. Danach hinterlegt das Tool einen eigenen Schlüssel auf dem Router – das Passwort wird nirgends gespeichert.</p>
+    <h2 data-i18n="connTitle"></h2>
+    <p data-i18n="connText"></p>
     <div class="row2">
-      <div><label for="cHost">Router-Adresse</label><input type="text" id="cHost" value="192.168.8.1"></div>
-      <div><label for="cPort">SSH-Port</label><input type="number" id="cPort" value="22" min="1" max="65535"></div>
-      <div><label for="cUser">Benutzer</label><input type="text" id="cUser" value="root"></div>
+      <div><label class="l" for="cHost" data-i18n="routerAddr"></label><input type="text" class="full" id="cHost" value="192.168.8.1"></div>
+      <div><label class="l" for="cPort" data-i18n="sshPort"></label><input type="number" class="full" id="cPort" value="22" min="1" max="65535"></div>
+      <div><label class="l" for="cUser" data-i18n="user"></label><input type="text" class="full" id="cUser" value="root"></div>
     </div>
-    <label for="cPass">Passwort</label>
-    <input type="password" id="cPass" autocomplete="current-password" autofocus>
+    <label class="l" for="cPass" data-i18n="password"></label>
+    <input type="password" class="full" id="cPass" autocomplete="current-password">
     <div class="err" id="cErr" hidden></div>
-    <div class="actions"><button class="btn primary" id="cBtn" type="submit">Verbinden</button></div>
-    <div class="note">Gemessen wird auf dem Router selbst über die WAN-Leitung – vom PC aus läge immer der aktive Tunnel dazwischen.</div>
+    <div class="actions"><button class="btn primary" id="cBtn" type="submit" data-i18n="connect"></button></div>
+    <div class="note" data-i18n="connNote"></div>
   </form>
 </div>
 
-<!-- Einstellungen -->
-<div class="overlay" id="settingsDlg" hidden>
+<!-- Wechsel bestätigen -->
+<div class="overlay" id="swDlg" hidden>
   <div class="dialog">
-    <h2>Einstellungen</h2>
+    <h2 data-i18n="swTitle"></h2>
+    <div class="swto"><span id="swFrom" class="muted"></span> → <b id="swTo"></b></div>
+    <p class="muted" id="swSub" style="margin-top:2px"></p>
+    <p data-i18n="swText"></p>
+    <div class="actions"><button class="btn" id="swCancel" data-i18n="cancel"></button><button class="btn primary" id="swGo" data-i18n="swGo"></button></div>
+  </div>
+</div>
+
+<!-- Einstellungen -->
+<div class="overlay" id="setDlg" hidden>
+  <div class="dialog wide">
+    <h2 data-i18n="settings"></h2>
+    <h4 data-i18n="secGeneral"></h4>
+    <div class="setrow"><span data-i18n="language"></span><div class="seg" id="langSeg"><button data-v="de">Deutsch</button><button data-v="en">English</button></div></div>
+    <div class="setrow" id="autostartRow" hidden><div><div data-i18n="autostart"></div><div class="d" data-i18n="autostartD"></div></div><input type="checkbox" class="toggle" id="setAutostart"></div>
+    <h4 data-i18n="secAlerts"></h4>
+    <div class="setrow"><div><div data-i18n="alertsOn"></div><div class="d" data-i18n="alertsD"></div></div><input type="checkbox" id="setAlerts"></div>
+    <div class="setrow"><span data-i18n="alertLoss"></span><select id="setAlertLoss"><option>2</option><option>5</option><option>10</option><option>20</option></select></div>
+    <div class="setrow"><span data-i18n="alertExtra"></span><select id="setAlertExtra"><option>5</option><option>10</option><option>15</option><option>25</option><option>50</option></select></div>
+    <h4 data-i18n="secAuto"></h4>
+    <div class="setrow"><div><div data-i18n="autoScan"></div><div class="d" data-i18n="autoScanD"></div></div>
+      <select id="setAutoScan"><option value="0"></option><option value="30">30 min</option><option value="60">60 min</option><option value="120">2 h</option><option value="240">4 h</option></select></div>
+    <h4 data-i18n="secRouter"></h4>
     <div class="kv" id="setKv"></div>
     <div class="err" id="setErr" hidden></div>
     <div class="actions" style="justify-content: space-between;">
-      <button class="btn" id="btnForget" title="Schlüssel und gemerkten Router-Fingerabdruck löschen">Router-Zugang zurücksetzen</button>
-      <button class="btn primary" id="btnCloseSettings">Schließen</button>
+      <button class="btn" id="btnForget" data-i18n="forget"></button>
+      <button class="btn primary" id="btnCloseSettings" data-i18n="close"></button>
     </div>
-    <div class="note">Zurücksetzen ist nötig, wenn der Router zurückgesetzt oder getauscht wurde. Danach einmal neu mit Passwort anmelden.</div>
+    <div class="note" data-i18n="forgetNote"></div>
   </div>
 </div>
 
@@ -321,6 +408,126 @@ footer a, .link { color: var(--ink-2); text-decoration: underline; text-underlin
 
 <script>
 "use strict";
+// ---------- Texte ----------
+const I18N = {
+  de: {
+    settings: "Einstellungen", quit: "Beenden", tabLive: "Live", tabBoard: "Bestenliste", tabScan: "Rangliste",
+    min1: "1 Min", min5: "5 Min", min15: "15 Min", scaleAuto: "Auto", scaleLin: "Linear", scaleLog: "Log",
+    scaleHelp: "Achse: Log zeigt kleine und große Werte gleichzeitig lesbar", addPh: "Server hinzufügen, z. B. de-ber oder Malmö",
+    watchLive: "Live beobachten", latencyMs: "Latenz in ms", chartEmpty: "Noch keine Server live. Oben einen Server hinzufügen oder in Bestenliste/Rangliste auf „Live“ klicken.",
+    every: "alle", boardOn: "läuft", colServer: "Server", colCity: "Stadt", colNow: "Jetzt", colMedian: "Median", colJitter: "Jitter",
+    colLoss: "Verlust", colTrend: "Verlauf", colStab: "Stabil", colOperator: "Betreiber", colAvg: "Mittel",
+    pingsPer: "Pings pro Server", measure: "Messen", cancelScan: "Abbrechen",
+    scanEmpty: "Noch keine Messung. Länder wählen und auf „Messen“ klicken – jeder Server wird vom Router aus angepingt, am Tunnel vorbei.",
+    refresh: "Aktualisieren", csv: "Verlauf als CSV speichern", openFolder: "Ordner öffnen",
+    disclaimer: "Inoffizielles Community-Tool · nicht mit Mullvad VPN AB oder GL.iNet verbunden",
+    connTitle: "Mit dem GL.iNet-Router verbinden", connText: "Einmalig mit dem Passwort des GL.iNet-Admin-Panels anmelden. Danach hinterlegt RelayPing einen eigenen Schlüssel auf dem Router – das Passwort wird nirgends gespeichert.",
+    routerAddr: "Router-Adresse", sshPort: "SSH-Port", user: "Benutzer", password: "Passwort", connect: "Verbinden", connecting: "Verbinde …",
+    connNote: "Gemessen wird auf dem Router selbst über die WAN-Leitung – vom PC aus läge immer der aktive Tunnel dazwischen.",
+    swTitle: "Server wechseln?", swText: "Laufende Verbindungen über diesen Tunnel brechen für einige Sekunden ab. Kommt keine Verbindung zum neuen Server zustande, stellt RelayPing nach 35 Sekunden automatisch den bisherigen wieder ein.",
+    cancel: "Abbrechen", swGo: "Umstellen", close: "Schließen",
+    secGeneral: "Allgemein", language: "Sprache", autostart: "Mit Windows starten", autostartD: "startet RelayPing beim Anmelden unsichtbar im Infobereich",
+    secAlerts: "Warnungen", alertsOn: "Bei schlechtem Tunnel warnen", alertsD: "Hinweis hier und als Windows-Benachrichtigung",
+    alertLoss: "Warnen ab Paketverlust (%)", alertExtra: "Warnen, wenn langsamer als der beste um (ms)",
+    secAuto: "Automatische Messung", autoScan: "Rangliste im Hintergrund", autoScanD: "misst die gespeicherten Länder regelmäßig – daraus entsteht der Stabilitätswert", off: "aus",
+    secRouter: "Router", forget: "Router-Zugang zurücksetzen", forgetNote: "Zurücksetzen ist nötig, wenn der Router zurückgesetzt oder getauscht wurde. Danach einmal neu mit Passwort anmelden.",
+    connected: "Router verbunden", wanMissing: "WAN nicht erkannt", disconnected: "Getrennt", connectingTo: "Verbinde mit", notSetUp: "Nicht eingerichtet",
+    unreachable: "Programm nicht erreichbar – läuft RelayPing noch?",
+    tunnel: "Tunnel", noTunnel: "Gerade keine aktive WireGuard-Verbindung erkannt.", noWg: "Aktive Tunnel nicht erkennbar (Befehl „wg“ fehlt auf dem Router).",
+    notInList: "Server nicht in der Mullvad-Liste", waiting: "warte auf Messwerte", loss: "Verlust",
+    handshake: "Handshake vor", never: "noch kein Handshake", down: "↓", up: "↑",
+    bestIs: "Bester laut {src}: ", bestSelf: "Dieser Server ist laut {src} der beste in {cc}.", faster: "{d} ms schneller",
+    srcBoard: "Bestenliste", srcScan: "Rangliste von {t}", noBest: "Die Bestenliste ermittelt gerade den besten Server in {cc} …",
+    switchBest: "Besten wählen & wechseln", switchTo: "Wechseln", switchNA: "Wechsel nicht möglich: {r}",
+    router: "Router", cpu: "CPU", ram: "RAM", temp: "Temperatur", uptime: "läuft seit",
+    live: "live", liveBtn: "Live", best: "Bester", tunnelBadge: "Tunnel", noAnswer: "keine Antwort", lost: "verloren",
+    owned: "eigener", rented: "gemietet", stab: "Anteil der Messungen der letzten 7 Tage, in denen der Server ohne Verlust höchstens 3 ms hinter dem besten lag",
+    bestNow: "Bester gerade · {cc}", median1: "Median der letzten Minute", boardOff: "Die Bestenliste ist ausgeschaltet.",
+    boardWait: "Erste Messrunde läuft …", boardInfo: "Runde {n} · alle {s} s je 3 Pings · {k} Server", boardCapped: " (auf 80 begrenzt)",
+    all: "Alle", autoEvery: "automatisch alle {m} min", autoOff: "automatische Messung aus", lastScan: "letzte Messung {t}",
+    favs: "Favoriten …", favSave: "+ Aktuelle Auswahl speichern …", favDel: "Favorit löschen: ", favName: "Name für diesen Favoriten:",
+    serverlist: "Serverliste: {n} WireGuard-Server · Stand {d} · {s}",
+    stRun: "", stConn: "verbinde …", stNoAns: "Server antwortet nicht", stUnreach: "nicht erreichbar",
+    removeLive: "Nicht mehr beobachten", noServerFor: "Kein Server gefunden für „{q}“", nowLive: "{h} wird jetzt live beobachten",
+    keyInstalled: "Verbunden – Schlüssel auf dem Router hinterlegt", accessReset: "Router-Zugang zurückgesetzt", relaysUpdated: "Serverliste aktualisiert",
+    quitDone: "RelayPing beendet", quitTab: "Du kannst diesen Tab schließen.", minOneCountry: "Mindestens ein Land wählen",
+    swRunning: "Wechsel läuft", swOk: "Wechsel erfolgreich", swBack: "Zurückgestellt", swFail: "Wechsel fehlgeschlagen", dismiss: "Ausblenden",
+    switchFor: "{name}: {from}", connVia: "Verbindung", connKey: "verbunden (Schlüssel)", wanIf: "WAN-Schnittstelle", notDetected: "nicht erkannt",
+    fastPing: "Schnelle Pings", yesFast: "ja (0,2 s Abstand)", noFast: "nein (1 s Abstand)", fp: "Router-Fingerabdruck", dataDir: "Datenordner", version: "Version",
+    switchApi: "Server-Wechsel", available: "verfügbar", unavailable: "nicht verfügbar", days: "T", hours: "h", min: "min",
+    quoted: "„{n}“", idle: "Leerlauf", hsIdleT: "Über diesen Tunnel läuft gerade kaum Verkehr – ein älterer Handshake ist dann normal.", hsBadT: "Es wird gesendet, aber seit über 3 Minuten kam kein Handshake zustande.",
+    alertLossT: "Tunnel {t}: {h} verliert {v} % der Pakete.", alertSlowT: "Tunnel {t}: {h} braucht {v} ms, {b} nur {bv} ms.", alertSuggest: "Vorschlag: auf {b} wechseln.",
+    notOnBoard: "{cc} ist nicht in der Bestenliste.", addToBoard: "Aufnehmen", srcCache: "Zwischenspeicher", srcApi: "Mullvad-API",
+    speedBtn: "Speedtest", speedRunT: "Speedtest durch den Tunnel …", speedRunW: "Vergleich: Leitung ohne VPN …", speedRes: "↓ ca. {m} Mbit/s über den Tunnel",
+    speedWan: "ohne VPN {m} Mbit/s", speedAgo: "gemessen {t}", speedHelp: "Der Router lädt {s} s lang mit 4 Verbindungen eine Testdatei von Cloudflare – durch den Tunnel und danach zum Vergleich ohne VPN. Verbraucht bei Gigabit bis zu ca. 2,5 GB. Ergebnis ist ein Richtwert: Die Router-CPU begrenzt mit.",
+    speedBusy: "Speedtest läuft", speedFail: "Speedtest fehlgeschlagen: {e}", colPort: "Port", portT: "Anschluss des Servers laut Mullvad; darunter dein letzter Speedtest über diesen Server", tested: "getestet"
+  },
+  en: {
+    settings: "Settings", quit: "Quit", tabLive: "Live", tabBoard: "Leaderboard", tabScan: "Ranking",
+    min1: "1 min", min5: "5 min", min15: "15 min", scaleAuto: "Auto", scaleLin: "Linear", scaleLog: "Log",
+    scaleHelp: "Axis: log keeps small and large values readable at once", addPh: "Add server, e.g. de-ber or Malmö",
+    watchLive: "Watch live", latencyMs: "Latency in ms", chartEmpty: "No servers live yet. Add one above or click “Live” in the leaderboard or ranking.",
+    every: "every", boardOn: "running", colServer: "Server", colCity: "City", colNow: "Now", colMedian: "Median", colJitter: "Jitter",
+    colLoss: "Loss", colTrend: "Trend", colStab: "Stable", colOperator: "Operator", colAvg: "Average",
+    pingsPer: "Pings per server", measure: "Measure", cancelScan: "Cancel",
+    scanEmpty: "No measurement yet. Choose countries and click “Measure” – every server is pinged from the router, bypassing the tunnel.",
+    refresh: "Refresh", csv: "Save history as CSV", openFolder: "Open folder",
+    disclaimer: "Unofficial community tool · not affiliated with Mullvad VPN AB or GL.iNet",
+    connTitle: "Connect to the GL.iNet router", connText: "Log in once with the GL.iNet admin panel password. RelayPing then installs its own key on the router – the password is never stored.",
+    routerAddr: "Router address", sshPort: "SSH port", user: "User", password: "Password", connect: "Connect", connecting: "Connecting …",
+    connNote: "Measurements run on the router itself over the WAN link – from the PC the active tunnel would always be in between.",
+    swTitle: "Switch server?", swText: "Connections through this tunnel drop for a few seconds. If the new server does not connect, RelayPing restores the previous one automatically after 35 seconds.",
+    cancel: "Cancel", swGo: "Switch", close: "Close",
+    secGeneral: "General", language: "Language", autostart: "Start with Windows", autostartD: "starts RelayPing hidden in the tray when you sign in",
+    secAlerts: "Alerts", alertsOn: "Warn about a degraded tunnel", alertsD: "notice here and as a Windows notification",
+    alertLoss: "Warn from packet loss (%)", alertExtra: "Warn when slower than the best by (ms)",
+    secAuto: "Background measuring", autoScan: "Ranking in the background", autoScanD: "measures the saved countries regularly – this builds the stability score", off: "off",
+    secRouter: "Router", forget: "Reset router access", forgetNote: "Needed if the router was reset or replaced. Then log in once more with the password.",
+    connected: "Router connected", wanMissing: "WAN not detected", disconnected: "Disconnected", connectingTo: "Connecting to", notSetUp: "Not set up",
+    unreachable: "Program not reachable – is RelayPing still running?",
+    tunnel: "Tunnel", noTunnel: "No active WireGuard connection detected.", noWg: "Active tunnels cannot be detected (“wg” missing on the router).",
+    notInList: "Server not in the Mullvad list", waiting: "waiting for data", loss: "Loss",
+    handshake: "Handshake", never: "no handshake yet", down: "↓", up: "↑",
+    bestIs: "Best per {src}: ", bestSelf: "Per {src} this is the best server in {cc}.", faster: "{d} ms faster",
+    srcBoard: "leaderboard", srcScan: "ranking of {t}", noBest: "The leaderboard is finding the best server in {cc} …",
+    switchBest: "Switch to best", switchTo: "Switch", switchNA: "Switching not possible: {r}",
+    router: "Router", cpu: "CPU", ram: "RAM", temp: "Temperature", uptime: "up",
+    live: "live", liveBtn: "Live", best: "Best", tunnelBadge: "Tunnel", noAnswer: "no answer", lost: "lost",
+    owned: "owned", rented: "rented", stab: "Share of measurements in the last 7 days where the server was within 3 ms of the best, without loss",
+    bestNow: "Best right now · {cc}", median1: "median of the last minute", boardOff: "The leaderboard is switched off.",
+    boardWait: "First round running …", boardInfo: "Round {n} · every {s} s, 3 pings each · {k} servers", boardCapped: " (capped at 80)",
+    all: "All", autoEvery: "automatic every {m} min", autoOff: "background measuring off", lastScan: "last run {t}",
+    favs: "Favorites …", favSave: "+ Save current selection …", favDel: "Delete favorite: ", favName: "Name for this favorite:",
+    serverlist: "Server list: {n} WireGuard servers · as of {d} · {s}",
+    stRun: "", stConn: "connecting …", stNoAns: "server not answering", stUnreach: "unreachable",
+    removeLive: "Stop watching", noServerFor: "No server found for “{q}”", nowLive: "Now watching {h} live",
+    keyInstalled: "Connected – key installed on the router", accessReset: "Router access reset", relaysUpdated: "Server list updated",
+    quitDone: "RelayPing stopped", quitTab: "You can close this tab.", minOneCountry: "Choose at least one country",
+    swRunning: "Switching", swOk: "Switched", swBack: "Restored", swFail: "Switch failed", dismiss: "Dismiss",
+    switchFor: "{name}: {from}", connVia: "Connection", connKey: "connected (key)", wanIf: "WAN interface", notDetected: "not detected",
+    fastPing: "Fast pings", yesFast: "yes (0.2 s interval)", noFast: "no (1 s interval)", fp: "Router fingerprint", dataDir: "Data folder", version: "Version",
+    switchApi: "Server switching", available: "available", unavailable: "unavailable", days: "d", hours: "h", min: "min",
+    quoted: "“{n}”", idle: "idle", hsIdleT: "Hardly any traffic is using this tunnel right now – an older handshake is normal then.", hsBadT: "Traffic is being sent, but no handshake for more than 3 minutes.",
+    alertLossT: "Tunnel {t}: {h} is losing {v}% of packets.", alertSlowT: "Tunnel {t}: {h} takes {v} ms, {b} only {bv} ms.", alertSuggest: "Suggestion: switch to {b}.",
+    notOnBoard: "{cc} is not on the leaderboard.", addToBoard: "Add", srcCache: "cache", srcApi: "Mullvad API",
+    speedBtn: "Speed test", speedRunT: "Speed test through the tunnel …", speedRunW: "Comparison: line without VPN …", speedRes: "↓ about {m} Mbit/s through the tunnel",
+    speedWan: "without VPN {m} Mbit/s", speedAgo: "measured {t}", speedHelp: "The router downloads a Cloudflare test file for {s} s over 4 connections – through the tunnel, then without VPN for comparison. Uses up to about 2.5 GB on gigabit. The result is a guide value: the router CPU is a limit too.",
+    speedBusy: "Speed test running", speedFail: "Speed test failed: {e}", colPort: "Port", portT: "Server uplink according to Mullvad; below it your last speed test via this server", tested: "tested"
+  }
+};
+let LANG = "de";
+const t = (k, vars) => { let s = (I18N[LANG] && I18N[LANG][k]) ?? I18N.de[k] ?? k; if (vars) for (const [a, b] of Object.entries(vars)) s = s.replaceAll("{" + a + "}", b); return s; };
+const loc = () => LANG === "en" ? "en-GB" : "de-DE";
+function applyI18n() {
+  document.documentElement.lang = LANG;
+  for (const e of document.querySelectorAll("[data-i18n]")) e.textContent = t(e.dataset.i18n);
+  for (const e of document.querySelectorAll("[data-i18n-ph]")) e.placeholder = t(e.dataset.i18nPh);
+  for (const e of document.querySelectorAll("[data-i18n-title]")) e.title = t(e.dataset.i18nTitle);
+  for (const e of document.querySelectorAll("[data-i18n-aria]")) e.setAttribute("aria-label", t(e.dataset.i18nAria));
+  $("setAutoScan").options[0].textContent = t("off");
+}
+
+// ---------- Hilfen ----------
 const $ = (id) => document.getElementById(id);
 const el = (tag, props = {}, ...kids) => {
   const e = document.createElement(tag);
@@ -333,435 +540,626 @@ const el = (tag, props = {}, ...kids) => {
   for (const k of kids) if (k != null) e.append(k);
   return e;
 };
-const fmt = (v, d = 1) => (v == null || isNaN(v)) ? "–" : v.toLocaleString("de-DE", { minimumFractionDigits: d, maximumFractionDigits: d });
-const regionName = (() => { try { const dn = new Intl.DisplayNames(["de"], { type: "region" }); return (cc) => { try { return dn.of(cc.toUpperCase()) || cc.toUpperCase(); } catch { return cc.toUpperCase(); } }; } catch { return (cc) => cc.toUpperCase(); } })();
+const fmt = (v, d = 1) => (v == null || isNaN(v)) ? "–" : v.toLocaleString(loc(), { minimumFractionDigits: d, maximumFractionDigits: d });
+const regionName = (cc) => { try { return new Intl.DisplayNames([LANG], { type: "region" }).of(cc.toUpperCase()) || cc.toUpperCase(); } catch { return (cc || "").toUpperCase(); } };
 const css = (name) => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+const timeStr = (d) => new Date(d).toLocaleTimeString(loc(), { hour: "2-digit", minute: "2-digit" });
+const rate = (b) => b == null ? "–" : b >= 1e6 ? fmt(b / 1e6, 1) + " MB/s" : b >= 1e3 ? fmt(b / 1e3, 0) + " kB/s" : fmt(b, 0) + " B/s";
+const dur = (s) => { s = Math.round(s); const d = Math.floor(s / 86400), h = Math.floor(s % 86400 / 3600), m = Math.floor(s % 3600 / 60); return d ? `${d} ${t("days")} ${h} ${t("hours")}` : h ? `${h} ${t("hours")} ${m} ${t("min")}` : `${m} ${t("min")}`; };
+const ago = (s) => s < 0 ? t("never") : s < 120 ? `${s} s` : `${Math.round(s / 60)} min`;
 
 async function api(path, body) {
-  const opt = body === undefined ? {} : { method: "POST", headers: { "Content-Type": "application/json", "X-MLat": "1" }, body: JSON.stringify(body) };
+  const opt = body === undefined ? {} : { method: "POST", headers: { "Content-Type": "application/json", "X-RelayPing": "1" }, body: JSON.stringify(body) };
   const r = await fetch(path, opt);
   const j = await r.json().catch(() => ({}));
   if (!r.ok) throw new Error(j.error || ("Fehler " + r.status));
   return j;
 }
 let toastT;
-function toast(msg) { const t = $("toast"); t.textContent = msg; t.hidden = false; clearTimeout(toastT); toastT = setTimeout(() => t.hidden = true, 4200); }
+function toast(msg) { const e = $("toast"); e.textContent = msg; e.hidden = false; clearTimeout(toastT); toastT = setTimeout(() => e.hidden = true, 4500); }
 
 // ---------- Zustand ----------
-let S = null;                 // Serverzustand
-let relays = [];              // Serverliste
+let S = null, board = null, scan = null, alerts = [], sw = null, speed = null;
+let relays = [];
 const relayBy = new Map();
-const series = new Map();     // host -> {color, samples:[{t,ms}]}
-const colorOf = new Map();    // Farbe folgt dem Server, nie dem Rang
-let rangeSec = 300;
-let scan = null;
-let scanCC = "all";
-let sortKey = "rank", sortDir = 1;
+const series = new Map();
+const colorOf = new Map();
+let rangeSec = 300, scaleMode = "auto", tab = "live";
+let scanCC = "all", sortKey = "rank", sortDir = 1, bSortKey = "rank", bSortDir = 1;
 const MAX_KEEP = 16 * 60 * 1000;
 
 function colorFor(host) {
-  if (!colorOf.has(host)) {
-    const used = new Set(colorOf.values());
-    let slot = 1; while (used.has(slot) && slot < 8) slot++;
-    colorOf.set(host, slot);
-  }
+  if (!colorOf.has(host)) { const used = new Set(colorOf.values()); let s = 1; while (used.has(s) && s < 8) s++; colorOf.set(host, s); }
   return `var(--s${colorOf.get(host)})`;
 }
 const resolveColor = (c) => c.startsWith("var(") ? css(c.slice(4, -1)) : c;
 
-// ---------- Live-Ereignisse ----------
+// ---------- Ereignisse ----------
 function connectEvents() {
   const es = new EventSource("/api/events");
-  es.addEventListener("state", (e) => { S = JSON.parse(e.data); renderState(); });
+  es.addEventListener("state", (e) => {
+    const prevLang = LANG; S = JSON.parse(e.data); LANG = S.lang || "de";
+    if (LANG !== prevLang) applyI18n();
+    renderAll();
+  });
+  es.addEventListener("backfill", (e) => {
+    const bf = JSON.parse(e.data);
+    for (const [host, arr] of Object.entries(bf)) series.set(host, { samples: arr.map(([t, ms]) => ({ t, ms: ms < 0 ? null : ms })) });
+    draw(); renderMons(); renderTunnels();
+  });
   es.addEventListener("sample", (e) => {
     const s = JSON.parse(e.data);
-    let x = series.get(s.host);
-    if (!x) { x = { samples: [] }; series.set(s.host, x); }
+    let x = series.get(s.host); if (!x) { x = { samples: [] }; series.set(s.host, x); }
     x.samples.push({ t: s.t, ms: s.ms < 0 ? null : s.ms });
-    const cut = Date.now() - MAX_KEEP;
-    while (x.samples.length && x.samples[0].t < cut) x.samples.shift();
+    const cut = Date.now() - MAX_KEEP; while (x.samples.length && x.samples[0].t < cut) x.samples.shift();
   });
-  es.addEventListener("scan", (e) => { scan = JSON.parse(e.data); renderScan(); });
-  es.onerror = () => { $("statusDot").className = "dot bad"; $("statusText").textContent = "Programm nicht erreichbar – läuft die .exe noch?"; };
+  es.addEventListener("scan", (e) => { scan = JSON.parse(e.data); renderScan(); renderTunnels(); });
+  es.addEventListener("board", (e) => { board = JSON.parse(e.data); renderBoard(); renderTunnels(); if (tab === "scan") renderScan(); });
+  es.addEventListener("alerts", (e) => { alerts = JSON.parse(e.data) || []; renderBanners(); });
+  es.addEventListener("switch", (e) => { sw = JSON.parse(e.data); renderBanners(); renderTunnels(); });
+  es.addEventListener("speed", (e) => { speed = JSON.parse(e.data); renderTunnels(); if (tab === "board") renderBoard(); else if (tab === "scan") renderScan(); });
+  es.onerror = () => { $("statusDot").className = "dot bad"; $("statusText").textContent = t("unreachable"); };
 }
 
-// ---------- Kopf, Tunnel, Dialoge ----------
-function renderState() {
+function renderAll() {
   if (!S) return;
+  renderHeader();
+  const live = new Set((S.monitors || []).map(m => m.host));
+  for (const h of [...series.keys()]) if (!live.has(h)) series.delete(h);
+  for (const h of [...colorOf.keys()]) if (!live.has(h)) colorOf.delete(h);
+  for (const tn of (S.router.tunnels || [])) if (live.has(tn.host)) colorFor(tn.host);
+  for (const h of [...live].sort()) colorFor(h);
+  if (S.relay_count && relays.length !== S.relay_count) loadRelays();
+  scaleMode = S.chart_scale || "auto";
+  for (const b of $("scaleSeg").querySelectorAll("button")) b.setAttribute("aria-pressed", b.dataset.v === scaleMode);
+  renderBanners(); renderTunnels(); renderRouterBar(); renderMons(); renderFavs(); renderSettings(); renderBoard(); renderScan(); renderFooter();
+}
+
+function renderHeader() {
   const dot = $("statusDot"), txt = $("statusText");
   if (S.connected) {
     dot.className = "dot ok";
-    const parts = ["Router verbunden"];
-    if (S.router.wan) parts.push("WAN " + S.router.wan); else parts.push("WAN nicht erkannt");
-    if (S.router.model) parts.push(S.router.model);
-    txt.textContent = parts.join(" · ");
-  } else if (S.has_key) {
-    dot.className = "dot wait"; txt.textContent = S.error ? "Getrennt – " + S.error : "Verbinde mit " + S.router_host + " …";
-  } else {
-    dot.className = "dot bad"; txt.textContent = "Nicht eingerichtet";
-  }
+    const p = [t("connected"), S.router.wan ? "WAN " + S.router.wan : t("wanMissing")];
+    if (S.router.model) p.push(S.router.model);
+    txt.textContent = p.join(" · ");
+  } else if (S.has_key) { dot.className = "dot wait"; txt.textContent = S.error ? t("disconnected") + " – " + S.error : t("connectingTo") + " " + S.router_host + " …"; }
+  else { dot.className = "dot bad"; txt.textContent = t("notSetUp"); }
   $("connectDlg").hidden = S.has_key;
   if (!$("connectDlg").hidden) {
     if (document.activeElement !== $("cHost")) $("cHost").value = S.router_host;
     $("cPort").value = S.router_port; $("cUser").value = S.router_user;
     if (S.error) { $("cErr").textContent = S.error; $("cErr").hidden = false; }
   }
+}
+
+function renderFooter() {
   $("csvToggle").checked = !!S.log_csv;
   if (S.relay_count) {
     const d = new Date(S.relay_date);
-    $("relayInfo").textContent = `Serverliste: ${S.relay_count} WireGuard-Server · Stand ${d.toLocaleDateString("de-DE")} ${d.toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" })} · ${S.relay_source}`;
+    $("relayInfo").textContent = t("serverlist", { n: S.relay_count, d: d.toLocaleDateString(loc()) + " " + timeStr(d), s: ({ "Zwischenspeicher": t("srcCache"), "Mullvad-API": t("srcApi") }[S.relay_source] ?? S.relay_source) });
   } else if (S.relay_error) $("relayInfo").textContent = S.relay_error;
-  if (S.relay_count && relays.length !== S.relay_count) loadRelays();
-  // Serien entfernen, die nicht mehr beobachtet werden
-  const live = new Set((S.monitors || []).map(m => m.host));
-  for (const h of [...series.keys()]) if (!live.has(h)) series.delete(h);
-  for (const h of [...colorOf.keys()]) if (!live.has(h)) colorOf.delete(h);
-  // Tunnel-Server zuerst einfärben, damit sie über Neustarts hinweg dieselbe Farbe behalten
-  for (const t of (S.router.tunnels || [])) if (live.has(t.host)) colorFor(t.host);
-  for (const h of [...live].sort()) colorFor(h);
-  renderTunnels(); renderMons(); renderSettings();
-  if (scan) renderScan();
 }
 
+// ---------- Banner (Warnungen, Wechsel) ----------
+function alertText(a) {
+  if (!a.kind) return a.text;
+  const q = t("quoted", { n: a.tunnel });
+  let s = a.kind === "loss" ? t("alertLossT", { t: q, h: a.host, v: fmt(a.value, 0) })
+    : t("alertSlowT", { t: q, h: a.host, v: fmt(a.value, 0), b: a.better, bv: fmt(a.best_avg, 0) });
+  if (a.better && a.better !== a.host) s += " " + t("alertSuggest", { b: a.better });
+  return s;
+}
+function renderBanners() {
+  const box = $("banners"); box.replaceChildren();
+  if (sw && (sw.running || (sw.finished && Date.now() - new Date(sw.finished) < 60000))) {
+    const kind = sw.running ? "info" : (sw.stage === "ok" ? "info" : "warn");
+    const title = sw.running ? t("swRunning") : sw.stage === "ok" ? t("swOk") : sw.stage === "zurueck" ? t("swBack") : t("swFail");
+    box.append(el("div", { class: "banner " + kind }, el("span", { class: "ic", text: sw.running ? "…" : sw.stage === "ok" ? "✓" : "!" }),
+      el("div", { class: "txt" }, el("b", { text: title + ": " }), sw.message || ""),
+      sw.running ? null : el("button", { class: "x", "aria-label": t("dismiss"), onclick: () => { sw = null; renderBanners(); } }, "×")));
+  }
+  for (const a of alerts.filter(a => !a.cleared).slice(-3)) {
+    const canSw = S && S.switch && S.switch.available && a.better;
+    const tn = canSw ? (S.router.tunnels || []).find(x => x.iface === a.iface) : null;
+    box.append(el("div", { class: "banner warn" }, el("span", { class: "ic", text: "!" }),
+      el("div", { class: "txt" }, alertText(a), el("div", { class: "meta", text: timeStr(a.time) })),
+      tn && tn.can_switch ? el("button", { class: "btn small primary", onclick: () => askSwitch(tn, a.better) }, t("switchTo") + " → " + a.better) : null,
+      el("button", { class: "x", "aria-label": t("dismiss"), onclick: () => api("/api/alerts/dismiss", { id: a.id }).catch(e => toast(e.message)) }, "×")));
+  }
+}
+
+// ---------- Tunnel & Router ----------
 function statsFor(host, sec) {
   const x = series.get(host); if (!x) return null;
   const cut = Date.now() - sec * 1000;
-  let n = 0, recv = 0, sum = 0, mn = Infinity, mx = -Infinity, js = 0, jn = 0, prev = null, last = null;
+  let n = 0, recv = 0, sum = 0, mn = Infinity, mx = -Infinity, js = 0, jn = 0, prev = null;
   for (const s of x.samples) {
-    if (s.t < cut) continue;
-    n++;
+    if (s.t < cut) continue; n++;
     if (s.ms == null) { prev = null; continue; }
     recv++; sum += s.ms; mn = Math.min(mn, s.ms); mx = Math.max(mx, s.ms);
-    if (prev != null) { js += Math.abs(s.ms - prev); jn++; }
-    prev = s.ms;
+    if (prev != null) { js += Math.abs(s.ms - prev); jn++; } prev = s.ms;
   }
-  const lastS = x.samples[x.samples.length - 1];
-  if (lastS) last = lastS.ms;
+  const last = x.samples.length ? x.samples[x.samples.length - 1].ms : null;
   if (!n) return null;
   return { n, loss: (n - recv) * 100 / n, avg: recv ? sum / recv : null, min: recv ? mn : null, max: recv ? mx : null, jitter: jn ? js / jn : null, last };
 }
 
-function bestFromScan(cc) {
-  if (!scan || !scan.results || scan.running) return null;
-  return scan.results.find(r => r.cc === cc && r.recv > 0) || null;
+// bester Server eines Landes: zuerst Bestenliste, sonst letzte Rangliste
+function bestFor(cc) {
+  if (board && board.rows && board.on) {
+    const r = board.rows.find(r => r.cc === cc && r.median > 0 && r.rounds >= 3);
+    if (r) return { host: r.host, avg: r.median, src: t("srcBoard") };
+  }
+  if (scan && scan.results && !scan.running && scan.finished && Date.now() - new Date(scan.finished) < 3 * 3600e3) {
+    const r = scan.results.find(r => r.cc === cc && r.recv > 0 && r.loss === 0);
+    if (r) return { host: r.host, avg: r.avg, src: t("srcScan", { t: timeStr(scan.finished) }) };
+  }
+  return null;
+}
+function currentAvg(host) {
+  if (board && board.rows) { const r = board.rows.find(r => r.host === host && r.median > 0); if (r) return r.median; }
+  const st = statsFor(host, 120); return st ? st.avg : null;
 }
 
-const scanTime = () => scan && scan.finished ? new Date(scan.finished).toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" }) + " Uhr" : "";
 function renderTunnels() {
   const box = $("tunnels"); box.replaceChildren();
-  const tun = (S && S.router && S.router.tunnels) || [];
   if (!S || !S.connected) return;
+  const tun = S.router.tunnels || [];
   if (!tun.length) {
-    box.append(el("div", { class: "tunnel" }, el("div", {}, el("div", { class: "label", text: "Tunnel" }), el("div", { class: "meta", text: S.router.has_wg ? "Gerade keine aktive WireGuard-Verbindung erkannt." : "Aktive Tunnel nicht erkennbar (Befehl „wg“ fehlt auf dem Router)." }))));
+    box.append(el("div", { class: "tunnel" }, el("div", {}, el("div", { class: "label", text: t("tunnel") }), el("div", { class: "meta", text: S.router.has_wg ? t("noTunnel") : t("noWg") }))));
     return;
   }
-  for (const t of tun) {
-    const st = t.host ? statsFor(t.host, 60) : null;
-    const r = relayBy.get(t.host);
-    const best = t.cc ? bestFromScan(t.cc) : null;
+  for (const tn of tun) {
+    const st = tn.host ? statsFor(tn.host, 60) : null;
+    const r = relayBy.get(tn.host);
+    const best = tn.cc ? bestFor(tn.cc) : null;
     const hint = el("div", { class: "hint" });
-    if (best && best.host !== t.host) {
-      const mine = scan.results.find(x => x.host === t.host);
-      const diff = mine && mine.recv ? (mine.avg - best.avg) : null;
-      hint.append(el("span", {}, "Bester laut Rangliste von " + scanTime() + ": ", el("b", { text: best.host }), diff != null ? ` (${fmt(diff)} ms schneller)` : ""));
-    } else if (best && best.host === t.host) {
-      hint.append(el("span", {}, el("b", { text: "Dieser Server ist laut Rangliste der beste in " + regionName(t.cc) + "." })));
-    } else {
-      hint.append(el("span", { text: "Rangliste messen, um den besten Server in " + (t.cc ? regionName(t.cc) : "diesem Land") + " zu finden." }));
-    }
-    hint.append(el("span", { class: "spacer" }), el("button", { class: "btn small", disabled: true, title: "Folgt, sobald der Umschalt-Befehl der GL.iNet-Firmware bekannt ist" }, "Besten wählen & wechseln ", el("span", { class: "soon", text: "folgt" })));
+    let target = null;
+    if (best && best.host !== tn.host) {
+      const mine = currentAvg(tn.host);
+      const diff = mine != null ? mine - best.avg : null;
+      hint.append(el("span", {}, t("bestIs", { src: best.src }), el("b", { text: best.host }), diff != null && diff > 0 ? " (" + t("faster", { d: fmt(diff) }) + ")" : ""));
+      target = best.host;
+    } else if (best) hint.append(el("span", {}, el("b", { text: t("bestSelf", { src: best.src, cc: regionName(tn.cc) }) })));
+    else if (tn.cc && board && !(board.countries || []).includes(tn.cc)) {
+      hint.append(el("span", { text: t("notOnBoard", { cc: regionName(tn.cc) }) + " " }),
+        el("button", { class: "btn small", onclick: () => setting({ board_countries: [...(board.countries || []), tn.cc], board_on: true }) }, t("addToBoard")));
+    } else hint.append(el("span", { text: t("noBest", { cc: tn.cc ? regionName(tn.cc) : "?" }) }));
+    hint.append(el("span", { class: "spacer" }), speedBtn(tn));
+    const swOk = S.switch && S.switch.available && tn.can_switch && target && !(sw && sw.running);
+    const reason = !(S.switch && S.switch.available) ? t("switchNA", { r: (S.switch && S.switch.reason) || "?" }) : "";
+    hint.append(el("button", { class: "btn small" + (swOk ? " primary" : ""), disabled: !swOk, title: reason || null, onclick: () => askSwitch(tn, target) }, t("switchBest")));
+    // WireGuard erneuert den Handshake nur bei Verkehr: alt + kaum Senden = Leerlauf, alt + Senden = Problem
+    const hsOld = tn.handshake_age > 180 || tn.handshake_age < 0;
+    const hsBad = hsOld && tn.tx_rate > 1000;
+    const hsIdle = hsOld && !hsBad;
+    const label = t("tunnel") + " " + (tn.name ? t("quoted", { n: tn.name }) + " · " : "") + tn.iface;
     box.append(el("div", { class: "tunnel" },
-      el("div", { class: "label", text: "Tunnel " + t.iface }),
-      el("div", { class: "server", text: t.host || t.ip }),
-      el("div", { class: "meta", text: t.host ? `${r ? r.city : ""}${r ? ", " : ""}${regionName(t.cc)}${r && r.provider ? " · " + r.provider : ""}` : "Server nicht in der Mullvad-Liste" }),
+      el("div", { class: "label", text: label }),
+      el("div", { class: "server", text: tn.host || tn.ip }),
+      el("div", { class: "meta", text: tn.host ? `${r ? r.city + ", " : ""}${regionName(tn.cc)}${r && r.provider ? " · " + r.provider : ""}` : t("notInList") }),
       el("div", { class: "big num" }, el("span", { class: "v", text: st && st.last != null ? fmt(st.last) : "–" }), el("span", { class: "u", text: "ms" }),
-        el("div", { class: "meta num", text: st ? `Ø ${fmt(st.avg)} · Verlust ${fmt(st.loss, 0)} %` : "warte auf Messwerte" })),
+        el("div", { class: "meta num", text: st ? `Ø ${fmt(st.avg)} · ${t("loss")} ${fmt(st.loss, 0)} %` : t("waiting") })),
+      speedLine(tn),
+      el("div", { class: "health num" },
+        el("span", { class: hsBad ? "bad" : hsIdle ? "handshake-idle" : "", title: hsBad ? t("hsBadT") : hsIdle ? t("hsIdleT") : null, text: (tn.handshake_age >= 0 ? `${t("handshake")} ${ago(tn.handshake_age)}` : t("never")) + (hsIdle ? ` (${t("idle")})` : "") }),
+        el("span", { text: `${t("down")} ${rate(tn.rx_rate)}  ${t("up")} ${rate(tn.tx_rate)}` })),
       hint));
   }
 }
 
+function speedLine(tn) {
+  const box = el("div", { class: "speedline num" });
+  const running = speed && speed.running;
+  if (running && speed.iface === tn.iface) {
+    const pct = Math.min(100, (speed.elapsed || 0) / (speed.secs || 10) * 100);
+    box.append(el("span", { text: speed.stage === "wan" ? t("speedRunW") : t("speedRunT") }), el("span", { class: "speedbar" }, el("i", { style: `width:${pct}%` })),
+      el("b", { text: speed.mbps ? fmt(speed.mbps, 0) + " Mbit/s" : "…" }));
+    return box;
+  }
+  const res = speed && speed.results && tn.host ? speed.results[tn.host] : null;
+  if (res) {
+    box.append(el("span", {}, el("b", { text: t("speedRes", { m: fmt(res.mbps, 0) }) })));
+    if (res.wan_mbps) box.append(el("span", { text: t("speedWan", { m: fmt(res.wan_mbps, 0) }) }));
+    box.append(el("span", { class: "muted", text: t("speedAgo", { t: whenStr(res.t) }) }));
+  } else if (speed && speed.error && speed.iface === tn.iface && !running) box.append(el("span", { class: "muted", text: t("speedFail", { e: speed.error }) }));
+  return box.childNodes.length ? box : null;
+}
+function speedBtn(tn) {
+  const running = speed && speed.running;
+  return el("button", { class: "btn small", disabled: !!running || !!(sw && sw.running), title: t("speedHelp", { s: (speed && speed.secs) || 10 }),
+    onclick: () => api("/api/speed/start", { iface: tn.iface }).then(r => { speed = r; renderTunnels(); }).catch(e => toast(e.message)) }, t("speedBtn"));
+}
+function whenStr(ts) {
+  const d = new Date(ts); const today = new Date().toDateString() === d.toDateString();
+  return today ? timeStr(d) : d.toLocaleDateString(loc()) + " " + timeStr(d);
+}
+function portCell(r) {
+  const res = speed && speed.results ? speed.results[r.host] : null;
+  return el("td", { class: "r num", title: t("portT") }, el("span", { class: r.speed ? "" : "muted", text: r.speed ? r.speed + " G" : "–" }),
+    res ? el("div", { class: "muted", style: "font-size:11.5px", text: fmt(res.mbps, 0) + " Mbit/s " + t("tested") }) : null);
+}
+
+function renderRouterBar() {
+  const b = $("routerbar");
+  if (!S || !S.connected || !S.router.uptime_s) { b.hidden = true; return; }
+  b.hidden = false; b.replaceChildren();
+  const r = S.router;
+  const cpu = r.nproc ? Math.min(100, r.load1 / r.nproc * 100) : null;
+  const ram = r.mem_total_kb ? (1 - r.mem_avail_kb / r.mem_total_kb) * 100 : null;
+  const meter = (v) => el("span", { class: "meter" }, el("i", { style: `width:${Math.max(2, Math.min(100, v || 0))}%` }));
+  b.append(...[el("b", { text: t("router") }),
+    cpu != null ? el("span", {}, `${t("cpu")} `, el("b", { class: "num", text: fmt(cpu, 0) + " %" }), meter(cpu)) : null,
+    ram != null ? el("span", {}, `${t("ram")} `, el("b", { class: "num", text: fmt(ram, 0) + " %" }), meter(ram)) : null,
+    r.temp_c ? el("span", {}, `${t("temp")} `, el("b", { class: "num", text: fmt(r.temp_c, 0) + " °C" })) : null,
+    el("span", {}, `${t("uptime")} `, el("b", { text: dur(r.uptime_s) })),
+    el("span", {}, `${t("switchApi")}: `, el("b", { text: S.switch && S.switch.available ? t("available") : t("unavailable") }))].filter(Boolean));
+}
+
+// ---------- Live ----------
+const stCode = (s) => ({ laeuft: "", verbinde: t("stConn"), "keine Antwort": t("stNoAns"), "nicht erreichbar": t("stUnreach") }[s] ?? s);
 function renderMons() {
   const box = $("mons"); box.replaceChildren();
   const mons = (S && S.monitors) || [];
-  const tunHosts = new Set(((S && S.router && S.router.tunnels) || []).map(t => t.host));
+  const tunHosts = new Set(((S && S.router && S.router.tunnels) || []).map(x => x.host));
   for (const m of mons) {
     const st = statsFor(m.host, rangeSec);
-    const lossEl = st && st.loss >= 5 ? el("span", { class: "val warn-loss num", title: "Deutlicher Paketverlust" }, "▲ " + fmt(st.loss, 0) + " %") : el("span", { class: "val num", text: st ? fmt(st.loss, 0) + " %" : "–" });
-    box.append(el("div", { class: "card mon", "data-host": m.host },
-      el("div", { class: "top" },
-        el("span", { class: "key", style: `background:${colorFor(m.host)}` }),
-        el("span", { class: "host", text: m.host }),
-        tunHosts.has(m.host) ? el("span", { class: "badge", text: "Tunnel" }) : null,
-        el("button", { class: "x", title: "Nicht mehr beobachten", "aria-label": "Nicht mehr beobachten", onclick: () => stopLive(m.host) }, "×")),
+    const lossEl = st && st.loss >= 5 ? el("span", { class: "val warn-loss num" }, "▲ " + fmt(st.loss, 0) + " %") : el("span", { class: "val num", text: st ? fmt(st.loss, 0) + " %" : "–" });
+    box.append(el("div", { class: "card mon" },
+      el("div", { class: "top" }, el("span", { class: "key", style: `background:${colorFor(m.host)}` }), el("span", { class: "host", text: m.host }),
+        tunHosts.has(m.host) ? el("span", { class: "badge", text: t("tunnelBadge") }) : null,
+        el("button", { class: "x", title: t("removeLive"), "aria-label": t("removeLive"), onclick: () => api("/api/live/stop", { host: m.host }).catch(e => toast(e.message)) }, "×")),
       el("div", { class: "city", text: `${m.city}, ${regionName(m.cc)}` }),
-      el("div", { class: "now num" }, el("span", { class: "v", text: st && st.last != null ? fmt(st.last) : (st && st.n ? "verloren" : "–") }), st && st.last != null ? el("span", { class: "u", text: "ms" }) : null),
+      el("div", { class: "now num" }, el("span", { class: "v", text: st && st.last != null ? fmt(st.last) : (st && st.n ? t("lost") : "–") }), st && st.last != null ? el("span", { class: "u", text: "ms" }) : null),
       el("div", { class: "stats" },
         el("div", {}, el("span", { class: "k", text: "Ø" }), el("span", { class: "val num", text: st ? fmt(st.avg) : "–" })),
-        el("div", {}, el("span", { class: "k", text: "Jitter" }), el("span", { class: "val num", text: st ? fmt(st.jitter) : "–" })),
+        el("div", {}, el("span", { class: "k", text: t("colJitter") }), el("span", { class: "val num", text: st ? fmt(st.jitter) : "–" })),
         el("div", {}, el("span", { class: "k", text: "Min / Max" }), el("span", { class: "val num", text: st && st.min != null ? `${fmt(st.min, 0)}/${fmt(st.max, 0)}` : "–" })),
-        el("div", {}, el("span", { class: "k", text: "Verlust" }), lossEl)),
-      el("div", { class: "state", text: m.status === "laeuft" ? "" : stateText(m.status) })));
+        el("div", {}, el("span", { class: "k", text: t("loss") }), lossEl)),
+      el("div", { class: "state", text: stCode(m.status) })));
   }
-  renderLegend();
-}
-const stateText = (s) => ({ verbinde: "verbinde …", "keine Antwort": "Server antwortet nicht", "nicht erreichbar": "nicht erreichbar" }[s] || s);
-
-function renderLegend() {
   const lg = $("legend"); lg.replaceChildren();
-  const mons = (S && S.monitors) || [];
   for (const m of mons) lg.append(el("span", {}, el("i", { class: "key", style: `background:${colorFor(m.host)}` }), m.host));
-  if (mons.length) lg.append(el("span", {}, el("i", { class: "key loss" }), "Paketverlust"));
+  if (mons.length) lg.append(el("span", {}, el("i", { class: "key loss" }), t("loss")));
   $("chartEmpty").hidden = mons.length > 0;
 }
 
-function renderSettings() {
-  if (!S) return;
-  const kv = $("setKv"); kv.replaceChildren();
-  const add = (k, v, mono) => kv.append(el("span", { class: "k", text: k }), el("span", { class: mono ? "mono" : "", text: v }));
-  add("Router", `${S.router_user}@${S.router_host}:${S.router_port}`);
-  add("Verbindung", S.connected ? "verbunden (Schlüssel)" : (S.has_key ? "getrennt" : "nicht eingerichtet"));
-  add("WAN-Schnittstelle", S.router.wan || "nicht erkannt");
-  add("Schnelle Pings", S.router.fastping ? "ja (0,2 s Abstand)" : "nein (1 s Abstand)");
-  if (S.fingerprint) add("Router-Fingerabdruck", S.fingerprint, true);
-  add("Datenordner", S.data_dir, true);
-  add("Version", S.version);
+function renderFavs() {
+  const sel = $("favSel"); sel.replaceChildren(el("option", { value: "", text: t("favs") }));
+  const favs = (S && S.favorites) || {};
+  for (const n of Object.keys(favs).sort()) sel.append(el("option", { value: "a:" + n, text: `★ ${n} (${favs[n].length})` }));
+  sel.append(el("option", { value: "save", text: t("favSave") }));
+  for (const n of Object.keys(favs).sort()) sel.append(el("option", { value: "d:" + n, text: t("favDel") + n }));
+  sel.value = "";
 }
+$("favSel").onchange = async (e) => {
+  const v = e.target.value; e.target.value = "";
+  try {
+    if (v === "save") {
+      const name = prompt(t("favName")); if (!name) return;
+      await api("/api/favorites/save", { name, hosts: (S.monitors || []).map(m => m.host) });
+    } else if (v.startsWith("a:")) await api("/api/favorites/apply", { name: v.slice(2) });
+    else if (v.startsWith("d:")) await api("/api/favorites/delete", { name: v.slice(2) });
+  } catch (err) { toast(err.message); }
+};
 
 // ---------- Diagramm ----------
 const cv = $("chart"), ctx = cv.getContext("2d");
 let hoverX = null;
-function niceStep(range, target) {
-  const raw = range / target, p = Math.pow(10, Math.floor(Math.log10(raw))), f = raw / p;
-  return (f < 1.5 ? 1 : f < 3 ? 2 : f < 7 ? 5 : 10) * p;
-}
+function niceStep(range, target) { const raw = range / target, p = Math.pow(10, Math.floor(Math.log10(raw))), f = raw / p; return (f < 1.5 ? 1 : f < 3 ? 2 : f < 7 ? 5 : 10) * p; }
 function draw() {
-  const box = $("chartBox"), dpr = window.devicePixelRatio || 1;
-  const W = box.clientWidth, H = box.clientHeight;
+  const box = $("chartBox"), dpr = window.devicePixelRatio || 1, W = box.clientWidth, H = box.clientHeight;
+  if (!W) return;
   if (cv.width !== Math.round(W * dpr) || cv.height !== Math.round(H * dpr)) { cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr); }
-  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  ctx.clearRect(0, 0, W, H);
-  const mons = (S && S.monitors) || [];
-  if (!mons.length) return;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, W, H);
+  const mons = (S && S.monitors) || []; if (!mons.length) return;
   const now = Date.now(), t0 = now - rangeSec * 1000;
-  const L = 46, R = 12, T = 10, B = 40, lossLane = 10;
-  const pw = W - L - R, ph = H - T - B - lossLane;
+  const L = 46, R = 12, T = 10, B = 40, lane = 10, pw = W - L - R, ph = H - T - B - lane;
   let mn = Infinity, mx = -Infinity;
   for (const m of mons) { const x = series.get(m.host); if (!x) continue; for (const s of x.samples) if (s.t >= t0 && s.ms != null) { mn = Math.min(mn, s.ms); mx = Math.max(mx, s.ms); } }
-  if (!isFinite(mn)) { mn = 0; mx = 50; }
-  const pad = Math.max((mx - mn) * 0.15, 1);
-  let y0 = Math.max(0, mn - pad), y1 = mx + pad;
-  const step = niceStep(y1 - y0, 4);
-  y0 = Math.floor(y0 / step) * step; y1 = Math.ceil(y1 / step) * step;
-  const X = (t) => L + (t - t0) / (now - t0) * pw;
-  const Y = (v) => T + ph - (v - y0) / (y1 - y0) * ph;
+  if (!isFinite(mn)) { mn = 1; mx = 50; }
+  const useLog = scaleMode === "log" || (scaleMode === "auto" && mx / Math.max(mn, 0.5) > 6);
+  let Y, ticks = [];
+  if (useLog) {
+    const lo = Math.max(0.5, mn * 0.8), hi = mx * 1.25, l0 = Math.log10(lo), l1 = Math.log10(hi);
+    Y = (v) => T + ph - (Math.log10(Math.max(v, lo)) - l0) / (l1 - l0) * ph;
+    for (const d of [1, 2, 5, 10, 20, 50, 100, 200, 500, 1000, 2000]) if (d >= lo && d <= hi) ticks.push(d);
+    if (ticks.length < 2) ticks = [Math.round(lo), Math.round(hi)];
+  } else {
+    const pad = Math.max((mx - mn) * 0.15, 1); let y0 = Math.max(0, mn - pad), y1 = mx + pad;
+    const step = niceStep(y1 - y0, 4); y0 = Math.floor(y0 / step) * step; y1 = Math.ceil(y1 / step) * step;
+    Y = (v) => T + ph - (v - y0) / (y1 - y0) * ph;
+    for (let v = y0; v <= y1 + 1e-9; v += step) ticks.push(v);
+  }
+  const X = (tt) => L + (tt - t0) / (now - t0) * pw;
   const muted = css("--muted"), grid = css("--grid"), axis = css("--axis");
   ctx.font = "11.5px system-ui, -apple-system, 'Segoe UI', sans-serif";
-  // Raster + y-Achse
   ctx.textAlign = "right"; ctx.textBaseline = "middle"; ctx.fillStyle = muted;
-  for (let v = y0; v <= y1 + 1e-9; v += step) {
-    const y = Math.round(Y(v)) + .5;
-    ctx.strokeStyle = grid; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(L, y); ctx.lineTo(L + pw, y); ctx.stroke();
-    ctx.fillText(fmt(v, step < 1 ? 1 : 0), L - 8, y);
-  }
-  // x-Achse
+  for (const v of ticks) { const y = Math.round(Y(v)) + .5; ctx.strokeStyle = grid; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(L, y); ctx.lineTo(L + pw, y); ctx.stroke(); ctx.fillText(fmt(v, v < 10 && v % 1 ? 1 : 0), L - 8, y); }
   ctx.strokeStyle = axis; ctx.beginPath(); ctx.moveTo(L, T + ph + .5); ctx.lineTo(L + pw, T + ph + .5); ctx.stroke();
   ctx.textAlign = "center"; ctx.textBaseline = "top";
   const tickS = rangeSec <= 60 ? 15 : rangeSec <= 300 ? 60 : 180;
-  for (let t = Math.ceil(t0 / (tickS * 1000)) * tickS * 1000; t <= now; t += tickS * 1000) {
-    const x = X(t);
-    if (x < L + 20 || x > L + pw - 20) continue;
-    ctx.fillText(new Date(t).toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit", second: rangeSec <= 60 ? "2-digit" : undefined }), x, T + ph + lossLane + 8);
+  for (let tt = Math.ceil(t0 / (tickS * 1000)) * tickS * 1000; tt <= now; tt += tickS * 1000) {
+    const x = X(tt); if (x < L + 20 || x > L + pw - 20) continue;
+    ctx.fillText(new Date(tt).toLocaleTimeString(loc(), { hour: "2-digit", minute: "2-digit", second: rangeSec <= 60 ? "2-digit" : undefined }), x, T + ph + lane + 8);
   }
-  // Verlust-Spur
-  ctx.fillStyle = muted; ctx.textAlign = "left";
-  const crit = css("--critical");
-  // Linien
+  if (useLog) { ctx.textAlign = "left"; ctx.fillStyle = muted; ctx.fillText("log", L + 4, T); }
   ctx.save(); ctx.beginPath(); ctx.rect(L, T - 2, pw, ph + 4); ctx.clip();
   for (const m of mons) {
     const x = series.get(m.host); if (!x) continue;
     ctx.strokeStyle = resolveColor(colorFor(m.host)); ctx.lineWidth = 2; ctx.lineJoin = "round"; ctx.lineCap = "round";
     ctx.beginPath(); let pen = false;
-    for (const s of x.samples) {
-      if (s.t < t0 - 2000) continue;
-      if (s.ms == null) { pen = false; continue; }
-      const px = X(s.t), py = Y(s.ms);
-      if (!pen) { ctx.moveTo(px, py); pen = true; } else ctx.lineTo(px, py);
-    }
+    for (const s of x.samples) { if (s.t < t0 - 2000) continue; if (s.ms == null) { pen = false; continue; } const px = X(s.t), py = Y(s.ms); if (!pen) { ctx.moveTo(px, py); pen = true; } else ctx.lineTo(px, py); }
     ctx.stroke();
   }
   ctx.restore();
-  for (const m of mons) {
-    const x = series.get(m.host); if (!x) continue;
-    ctx.fillStyle = crit;
-    for (const s of x.samples) if (s.ms == null && s.t >= t0) ctx.fillRect(Math.round(X(s.t)) - 1, T + ph + 2, 2, lossLane - 3);
-  }
-  // Fadenkreuz + Tooltip
+  ctx.fillStyle = css("--critical");
+  for (const m of mons) { const x = series.get(m.host); if (!x) continue; for (const s of x.samples) if (s.ms == null && s.t >= t0) ctx.fillRect(Math.round(X(s.t)) - 1, T + ph + 2, 2, lane - 3); }
   const tip = $("tip");
   if (hoverX != null && hoverX >= L && hoverX <= L + pw) {
     const ht = t0 + (hoverX - L) / pw * (now - t0);
-    ctx.strokeStyle = axis; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(Math.round(hoverX) + .5, T); ctx.lineTo(Math.round(hoverX) + .5, T + ph + lossLane); ctx.stroke();
-    tip.replaceChildren(el("div", { class: "t num", text: new Date(ht).toLocaleTimeString("de-DE") }));
+    ctx.strokeStyle = axis; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(Math.round(hoverX) + .5, T); ctx.lineTo(Math.round(hoverX) + .5, T + ph + lane); ctx.stroke();
+    tip.replaceChildren(el("div", { class: "t num", text: new Date(ht).toLocaleTimeString(loc()) }));
     let any = false;
     for (const m of mons) {
       const x = series.get(m.host); if (!x) continue;
-      let bestS = null, bd = 1200;
-      for (const s of x.samples) { const d = Math.abs(s.t - ht); if (d < bd) { bd = d; bestS = s; } }
-      if (!bestS) continue;
-      any = true;
-      if (bestS.ms != null) {
-        ctx.fillStyle = css("--surface"); ctx.beginPath(); ctx.arc(X(bestS.t), Y(bestS.ms), 5, 0, Math.PI * 2); ctx.fill();
-        ctx.fillStyle = resolveColor(colorFor(m.host)); ctx.beginPath(); ctx.arc(X(bestS.t), Y(bestS.ms), 3.5, 0, Math.PI * 2); ctx.fill();
-      }
-      tip.append(el("div", { class: "row" }, el("i", { class: "key", style: `background:${colorFor(m.host)}` }), el("b", { class: "num", text: bestS.ms == null ? "verloren" : fmt(bestS.ms) + " ms" }), el("span", { class: "n", text: m.host })));
+      let b = null, bd = 1200; for (const s of x.samples) { const d = Math.abs(s.t - ht); if (d < bd) { bd = d; b = s; } }
+      if (!b) continue; any = true;
+      if (b.ms != null) { ctx.fillStyle = css("--surface"); ctx.beginPath(); ctx.arc(X(b.t), Y(b.ms), 5, 0, 7); ctx.fill(); ctx.fillStyle = resolveColor(colorFor(m.host)); ctx.beginPath(); ctx.arc(X(b.t), Y(b.ms), 3.5, 0, 7); ctx.fill(); }
+      tip.append(el("div", { class: "row" }, el("i", { class: "key", style: `background:${colorFor(m.host)}` }), el("b", { class: "num", text: b.ms == null ? t("lost") : fmt(b.ms) + " ms" }), el("span", { class: "n", text: m.host })));
     }
-    if (any) {
-      tip.hidden = false;
-      const tw = tip.offsetWidth;
-      tip.style.left = (hoverX + 14 + tw > W ? hoverX - tw - 14 : hoverX + 14) + "px";
-      tip.style.top = T + 6 + "px";
-    } else tip.hidden = true;
+    if (any) { tip.hidden = false; const tw = tip.offsetWidth; tip.style.left = (hoverX + 14 + tw > W ? hoverX - tw - 14 : hoverX + 14) + "px"; tip.style.top = T + 6 + "px"; } else tip.hidden = true;
   } else tip.hidden = true;
 }
-$("chartBox").addEventListener("pointermove", (e) => { const r = cv.getBoundingClientRect(); hoverX = e.clientX - r.left; });
+$("chartBox").addEventListener("pointermove", (e) => { hoverX = e.clientX - cv.getBoundingClientRect().left; });
 $("chartBox").addEventListener("pointerleave", () => { hoverX = null; });
-function loop() { draw(); requestAnimationFrame(loop); }
-setInterval(() => { renderMons(); renderTunnels(); }, 1000);
+function loop() { if (tab === "live") draw(); requestAnimationFrame(loop); }
+setInterval(() => { if (!S) return; renderMons(); renderTunnels(); }, 1000);
 
 // ---------- Live-Steuerung ----------
 async function loadRelays() {
   try {
-    relays = await api("/api/relays");
-    relayBy.clear(); for (const r of relays) relayBy.set(r.host, r);
+    relays = await api("/api/relays"); relayBy.clear(); for (const r of relays) relayBy.set(r.host, r);
     const dl = $("relayList"); dl.replaceChildren();
     for (const r of relays) dl.append(el("option", { value: r.host, label: `${r.city}, ${regionName(r.cc)}` }));
-    renderCountryPicker();
+    renderCountryPickers();
   } catch (e) { toast(e.message); }
 }
-async function startLive(host) {
-  try { await api("/api/live/start", { host }); toast(host + " wird jetzt live beobachtet"); }
-  catch (e) { toast(e.message); }
-}
-async function stopLive(host) { try { await api("/api/live/stop", { host }); } catch (e) { toast(e.message); } }
+async function startLive(host) { try { await api("/api/live/start", { host }); toast(t("nowLive", { h: host })); } catch (e) { toast(e.message); } }
 $("btnAdd").onclick = () => {
   const q = $("addInput").value.trim().toLowerCase(); if (!q) return;
-  let r = relayBy.get(q) || relays.find(x => x.host.startsWith(q)) || relays.find(x => (x.city || "").toLowerCase().startsWith(q));
-  if (!r) { toast("Kein Server gefunden für „" + q + "“"); return; }
+  const r = relayBy.get(q) || relays.find(x => x.host.startsWith(q)) || relays.find(x => (x.city || "").toLowerCase().startsWith(q));
+  if (!r) { toast(t("noServerFor", { q })); return; }
   $("addInput").value = ""; startLive(r.host);
 };
 $("addInput").addEventListener("keydown", (e) => { if (e.key === "Enter") $("btnAdd").click(); });
-for (const b of $("rangeSeg").querySelectorAll("button")) b.onclick = () => {
-  rangeSec = +b.dataset.s; for (const x of $("rangeSeg").querySelectorAll("button")) x.setAttribute("aria-pressed", x === b); renderMons();
-};
+for (const b of $("rangeSeg").querySelectorAll("button")) b.onclick = () => { rangeSec = +b.dataset.s; for (const x of $("rangeSeg").querySelectorAll("button")) x.setAttribute("aria-pressed", x === b); renderMons(); };
+for (const b of $("scaleSeg").querySelectorAll("button")) b.onclick = () => { scaleMode = b.dataset.v; for (const x of $("scaleSeg").querySelectorAll("button")) x.setAttribute("aria-pressed", x === b); api("/api/settings", { chart_scale: scaleMode }).catch(() => {}); };
 
 // ---------- Reiter ----------
-function selectTab(live) {
-  $("tabLive").setAttribute("aria-selected", live); $("tabScan").setAttribute("aria-selected", !live);
-  $("panelLive").hidden = !live; $("panelScan").hidden = live;
-}
-$("tabLive").onclick = () => selectTab(true);
-$("tabScan").onclick = () => selectTab(false);
-
-// ---------- Rangliste ----------
-let pickCC = null;
-function renderCountryPicker() {
-  if (!pickCC) pickCC = (S && S.countries && S.countries.length) ? [...S.countries] : ["de", "se"];
-  const chips = $("ccChips"); chips.replaceChildren();
-  for (const cc of pickCC) chips.append(el("span", { class: "chip" }, regionName(cc), el("button", { title: "Entfernen", "aria-label": regionName(cc) + " entfernen", onclick: () => { pickCC = pickCC.filter(x => x !== cc); renderCountryPicker(); } }, "×")));
-  const sel = $("ccAdd"); sel.replaceChildren(el("option", { value: "", text: "+ Land" }));
-  const ccs = [...new Set(relays.map(r => r.cc))].filter(c => !pickCC.includes(c)).sort((a, b) => regionName(a).localeCompare(regionName(b), "de"));
-  for (const c of ccs) sel.append(el("option", { value: c, text: `${regionName(c)} (${relays.filter(r => r.cc === c).length})` }));
-  if (S && S.scan_pings) $("pings").value = String(S.scan_pings);
-}
-$("ccAdd").onchange = (e) => { const v = e.target.value; if (v) { pickCC.push(v); renderCountryPicker(); } };
-$("btnScan").onclick = async () => {
-  if (scan && scan.running) { try { await api("/api/scan/stop", {}); } catch (e) { toast(e.message); } return; }
-  if (!pickCC.length) { toast("Mindestens ein Land wählen"); return; }
-  try { scan = await api("/api/scan/start", { countries: pickCC, pings: +$("pings").value }); scanCC = "all"; renderScan(); }
-  catch (e) { toast(e.message); }
+for (const b of document.querySelectorAll(".tab")) b.onclick = () => {
+  tab = b.dataset.tab;
+  for (const x of document.querySelectorAll(".tab")) x.setAttribute("aria-selected", x === b);
+  for (const p of ["live", "board", "scan"]) $("panel-" + p).hidden = p !== tab;
+  try { localStorage.setItem("rp-tab", tab); } catch {}
+  if (tab === "board") renderBoard(); else if (tab === "scan") renderScan();
 };
 
+// ---------- Länderauswahl ----------
+let pickCC = null;
+function countryOptions(sel, exclude) {
+  sel.replaceChildren(el("option", { value: "", text: "+ " + (LANG === "en" ? "Country" : "Land") }));
+  const ccs = [...new Set(relays.map(r => r.cc))].filter(c => !exclude.includes(c)).sort((a, b) => regionName(a).localeCompare(regionName(b), LANG));
+  for (const c of ccs) sel.append(el("option", { value: c, text: `${regionName(c)} (${relays.filter(r => r.cc === c).length})` }));
+}
+function chips(box, list, onRemove) {
+  box.replaceChildren();
+  for (const cc of list) box.append(el("span", { class: "chip" }, regionName(cc), el("button", { "aria-label": regionName(cc), onclick: () => onRemove(cc) }, "×")));
+}
+function renderCountryPickers() {
+  if (!S) return;
+  if (!pickCC) pickCC = [...(S.countries || ["de", "se"])];
+  chips($("ccChips"), pickCC, (cc) => { pickCC = pickCC.filter(x => x !== cc); renderCountryPickers(); });
+  countryOptions($("ccAdd"), pickCC);
+  const bcc = S.board_countries || ["de"];
+  chips($("bChips"), bcc, (cc) => { const n = bcc.filter(x => x !== cc); if (n.length) api("/api/settings", { board_countries: n }).catch(e => toast(e.message)); });
+  countryOptions($("bAdd"), bcc);
+  $("bInterval").value = String(S.board_interval || 10);
+  $("bOn").checked = !!S.board_on;
+  if (S.scan_pings) $("pings").value = String(S.scan_pings);
+}
+$("ccAdd").onchange = (e) => { const v = e.target.value; if (v) { pickCC.push(v); renderCountryPickers(); } };
+$("bAdd").onchange = (e) => { const v = e.target.value; if (v) api("/api/settings", { board_countries: [...(S.board_countries || []), v] }).catch(err => toast(err.message)); };
+$("bInterval").onchange = (e) => api("/api/settings", { board_interval: +e.target.value }).catch(err => toast(err.message));
+$("bOn").onchange = (e) => api("/api/settings", { board_on: e.target.checked }).catch(err => toast(err.message));
+
+// ---------- Kleine Verlaufskurve ----------
+function spark(vals) {
+  const w = 110, h = 24, NS = "http://www.w3.org/2000/svg";
+  const svg = document.createElementNS(NS, "svg"); svg.setAttribute("width", w); svg.setAttribute("height", h); svg.setAttribute("class", "spark"); svg.setAttribute("viewBox", `0 0 ${w} ${h}`);
+  const ok = vals.filter(v => v >= 0); if (!ok.length) return svg;
+  const lo = Math.min(...ok), hi = Math.max(...ok), span = Math.max(hi - lo, 1), n = Math.max(vals.length - 1, 1);
+  let d = "", pen = false;
+  vals.forEach((v, i) => {
+    const x = i / n * (w - 4) + 2;
+    if (v < 0) { pen = false; const r = document.createElementNS(NS, "rect"); r.setAttribute("x", x - 1); r.setAttribute("y", h - 4); r.setAttribute("width", 2); r.setAttribute("height", 4); r.setAttribute("fill", css("--critical")); svg.append(r); return; }
+    const y = h - 5 - (v - lo) / span * (h - 9);
+    d += (pen ? "L" : "M") + x.toFixed(1) + " " + y.toFixed(1); pen = true;
+  });
+  const p = document.createElementNS(NS, "path"); p.setAttribute("d", d); p.setAttribute("fill", "none"); p.setAttribute("stroke", css("--s1")); p.setAttribute("stroke-width", "1.6"); p.setAttribute("stroke-linejoin", "round");
+  svg.append(p); return svg;
+}
+
+// Wechsel-Knopf für eine Tabellenzeile: nur wenn ein Tunnel im selben Land existiert
+function switchBtnFor(row) {
+  if (!S || !S.switch || !S.switch.available) return null;
+  const tn = (S.router.tunnels || []).find(x => x.cc === row.cc && x.can_switch);
+  if (!tn || tn.host === row.host) return null;
+  return el("button", { class: "btn small", disabled: !!(sw && sw.running), onclick: () => askSwitch(tn, row.host) }, t("switchTo"));
+}
+const ownedTxt = (r) => (r.owned == null ? "" : (r.owned ? t("owned") : t("rented"))) + (r.provider ? " · " + r.provider : "");
+const stabCell = (v) => v == null || v < 0 ? el("span", { class: "muted", text: "–" }) : el("span", { text: fmt(v, 0) + " %" });
+
+// ---------- Bestenliste ----------
+function renderBoard() {
+  if (!board || !S) return;
+  const heroes = $("heroes"); heroes.replaceChildren();
+  const info = $("bInfo"), empty = $("boardEmpty"), tb = $("boardBody"); tb.replaceChildren();
+  const rows = board.rows || [];
+  if (!board.on) { info.textContent = ""; empty.hidden = false; empty.textContent = t("boardOff"); return; }
+  info.textContent = board.round ? t("boardInfo", { n: board.round, s: board.interval, k: rows.length }) + (board.capped ? t("boardCapped") : "") : (board.error || t("boardWait"));
+  const measured = rows.filter(r => r.median > 0);
+  empty.hidden = measured.length > 0; empty.textContent = board.error || t("boardWait");
+  for (const cc of board.countries || []) {
+    const r = measured.find(r => r.cc === cc); if (!r) continue;
+    heroes.append(el("div", { class: "card hero" },
+      el("div", { class: "k", text: t("bestNow", { cc: regionName(cc) }) }),
+      el("div", { class: "row" }, el("div", {}, el("div", { class: "h", text: r.host }), el("div", { class: "m", text: `${r.city} · ${t("median1")}` })),
+        el("div", { class: "num" }, el("span", { class: "v", text: fmt(r.median) }), el("span", { class: "muted", text: " ms" })))));
+  }
+  const bestHosts = new Set(); for (const cc of board.countries || []) { const r = measured.find(r => r.cc === cc); if (r) bestHosts.add(r.host); }
+  const rank = new Map(); rows.forEach((r, i) => rank.set(r.host, i + 1));
+  const val = (r, k) => k === "rank" ? rank.get(r.host) : k === "owned" ? (r.owned ? 0 : 1) : k === "now" ? (r.now < 0 ? 1e9 : r.now) : k === "median" ? (r.median || 1e9) : k === "stability" ? -(r.stability ?? -1) : k === "speed" ? -(r.speed || 0) : r[k];
+  const sorted = [...rows].sort((a, b) => { const x = val(a, bSortKey), y = val(b, bSortKey); return (typeof x === "string" ? x.localeCompare(y) : x - y) * bSortDir; });
+  for (const th of document.querySelectorAll("#boardTable th[data-k]")) { if (th.dataset.k === bSortKey) th.setAttribute("aria-sort", bSortDir === 1 ? "ascending" : "descending"); else th.removeAttribute("aria-sort"); }
+  const maxMed = Math.max(1, ...measured.map(r => r.median));
+  const live = new Set((S.monitors || []).map(m => m.host));
+  for (const r of sorted) {
+    const dead = !(r.median > 0);
+    tb.append(el("tr", { class: r.active ? "active" : "" },
+      el("td", { class: "r num muted", text: String(rank.get(r.host)) }),
+      el("td", {}, el("span", { text: r.host }), " ", r.active ? el("span", { class: "badge", text: t("tunnelBadge") }) : null, " ", bestHosts.has(r.host) ? el("span", { class: "badge best", text: t("best") + " " + r.cc.toUpperCase() }) : null),
+      el("td", {}, el("div", { text: r.city }), el("div", { class: "muted", style: "font-size:11.5px", text: ownedTxt(r) })),
+      el("td", { class: "r num", text: r.now < 0 ? t("lost") : fmt(r.now) }),
+      el("td", { class: "r num" }, dead ? el("span", { class: "muted", text: t("noAnswer") }) : el("div", { class: "barcell" }, el("div", { class: "bar", style: `width:${Math.max(4, r.median / maxMed * 60)}px` }), el("span", { text: fmt(r.median) }))),
+      el("td", { class: "r num", text: dead ? "–" : fmt(r.jitter) }),
+      el("td", { class: "r num" }, r.loss >= 5 ? el("span", { class: "warn-loss" }, "▲ " + fmt(r.loss, 0) + " %") : el("span", { text: fmt(r.loss, 0) + " %" })),
+      el("td", {}, spark(r.spark || [])),
+      el("td", { class: "r num", title: t("stab") }, stabCell(r.stability)),
+      portCell(r),
+      el("td", { class: "r" }, el("span", { class: "actions" }, switchBtnFor(r), live.has(r.host) ? el("span", { class: "muted", text: t("live") }) : el("button", { class: "btn small", onclick: () => startLive(r.host) }, t("liveBtn"))))));
+  }
+}
+for (const th of document.querySelectorAll("#boardTable th[data-k]")) th.onclick = () => { if (bSortKey === th.dataset.k) bSortDir = -bSortDir; else { bSortKey = th.dataset.k; bSortDir = 1; } renderBoard(); };
+
+// ---------- Rangliste ----------
+$("btnScan").onclick = async () => {
+  if (scan && scan.running) { try { await api("/api/scan/stop", {}); } catch (e) { toast(e.message); } return; }
+  if (!pickCC || !pickCC.length) { toast(t("minOneCountry")); return; }
+  try { scan = await api("/api/scan/start", { countries: pickCC, pings: +$("pings").value }); scanCC = "all"; renderScan(); } catch (e) { toast(e.message); }
+};
 function renderScan() {
+  if (!S) return;
+  $("autoInfo").textContent = (S.auto_scan_min ? t("autoEvery", { m: S.auto_scan_min }) : t("autoOff")) + (scan && scan.finished && !scan.running && scan.results && scan.results.length ? " · " + t("lastScan", { t: timeStr(scan.finished) }) : "");
   if (!scan) return;
   const running = scan.running;
-  $("btnScan").textContent = running ? "Abbrechen" : "Messen";
+  $("btnScan").textContent = running ? t("cancelScan") : t("measure");
   $("btnScan").className = running ? "btn" : "btn primary";
   $("progress").hidden = !running;
   $("progress").firstElementChild.style.width = scan.total ? (scan.done / scan.total * 100) + "%" : "0";
-  if (scan.error && !running && scan.error !== "Abgebrochen") toast(scan.error);
   const res = scan.results || [];
   $("scanEmpty").hidden = res.length > 0;
-  if (!res.length && running) { $("scanEmpty").hidden = false; $("scanEmpty").textContent = `Messe ${scan.total} Server …`; }
-  // Länder-Reiter
   const ccs = [...new Set(res.map(r => r.cc))];
   const ct = $("ctabs"); ct.replaceChildren();
   if (ccs.length > 1) {
     const mk = (cc, label) => el("button", { class: "btn small" + (scanCC === cc ? " primary" : ""), onclick: () => { scanCC = cc; renderScan(); } }, label);
-    ct.append(mk("all", "Alle"));
-    for (const c of ccs) ct.append(mk(c, regionName(c)));
+    ct.append(mk("all", t("all"))); for (const c of ccs) ct.append(mk(c, regionName(c)));
   } else scanCC = "all";
-  // Platz je Land (nach Verlust, dann Mittel – vom Server so geliefert, beim Laufen hier nachsortiert)
   const ordered = [...res].sort((a, b) => ((a.recv === 0) - (b.recv === 0)) || (a.loss - b.loss) || (a.avg - b.avg));
   const rankIn = new Map(), seenCC = new Map(), bestHosts = new Set();
-  ordered.forEach((r, i) => { const k = scanCC === "all" ? "all" : r.cc; const n = (seenCC.get(r.cc) || 0) + 1; seenCC.set(r.cc, n); if (n === 1 && r.recv > 0) bestHosts.add(r.host); rankIn.set(r.host, scanCC === "all" ? i + 1 : n); });
+  ordered.forEach((r, i) => { const n = (seenCC.get(r.cc) || 0) + 1; seenCC.set(r.cc, n); if (n === 1 && r.recv > 0 && !running) bestHosts.add(r.host); rankIn.set(r.host, i + 1); });
   let rows = ordered.filter(r => scanCC === "all" || r.cc === scanCC);
   if (scanCC !== "all") rows.forEach((r, i) => rankIn.set(r.host, i + 1));
-  const val = (r, k) => k === "rank" ? rankIn.get(r.host) : k === "owned" ? (r.owned ? 0 : 1) : r[k];
+  const stab = new Map(((board && board.rows) || []).map(r => [r.host, r.stability]));
+  const val = (r, k) => k === "rank" ? rankIn.get(r.host) : k === "owned" ? (r.owned ? 0 : 1) : k === "stability" ? -(stab.get(r.host) ?? -1) : k === "speed" ? -(r.speed || 0) : r[k];
   rows.sort((a, b) => { const x = val(a, sortKey), y = val(b, sortKey); return (typeof x === "string" ? x.localeCompare(y) : (x - y)) * sortDir; });
-  for (const th of document.querySelectorAll("#scanTable th[data-k]")) {
-    if (th.dataset.k === sortKey) th.setAttribute("aria-sort", sortDir === 1 ? "ascending" : "descending"); else th.removeAttribute("aria-sort");
-  }
+  for (const th of document.querySelectorAll("#scanTable th[data-k]")) { if (th.dataset.k === sortKey) th.setAttribute("aria-sort", sortDir === 1 ? "ascending" : "descending"); else th.removeAttribute("aria-sort"); }
   const maxAvg = Math.max(1, ...rows.filter(r => r.recv).map(r => r.avg));
-  const live = new Set(((S && S.monitors) || []).map(m => m.host));
+  const live = new Set((S.monitors || []).map(m => m.host));
   const tb = $("scanBody"); tb.replaceChildren();
   for (const r of rows) {
     const dead = r.recv === 0;
-    const owned = r.owned == null ? "" : (r.owned ? "eigener" : "gemietet");
     tb.append(el("tr", { class: r.active ? "active" : "" },
       el("td", { class: "r num muted", text: String(rankIn.get(r.host)) }),
-      el("td", {}, el("span", { text: r.host }), " ", r.active ? el("span", { class: "badge", text: "Tunnel" }) : null, " ", bestHosts.has(r.host) ? el("span", { class: "badge best", text: "Bester " + r.cc.toUpperCase() }) : null),
-      el("td", { text: r.city }),
-      el("td", { class: "r num" }, dead ? el("span", { class: "muted", text: "keine Antwort" }) : el("div", { class: "barcell" }, el("div", { class: "bar", style: `width:${Math.max(4, r.avg / maxAvg * 70)}px` }), el("span", { text: fmt(r.avg) }))),
+      el("td", {}, el("span", { text: r.host }), " ", r.active ? el("span", { class: "badge", text: t("tunnelBadge") }) : null, " ", bestHosts.has(r.host) ? el("span", { class: "badge best", text: t("best") + " " + r.cc.toUpperCase() }) : null),
+      el("td", {}, el("div", { text: r.city }), el("div", { class: "muted", style: "font-size:11.5px", text: ownedTxt(r) })),
+      el("td", { class: "r num" }, dead ? el("span", { class: "muted", text: t("noAnswer") }) : el("div", { class: "barcell" }, el("div", { class: "bar", style: `width:${Math.max(4, r.avg / maxAvg * 70)}px` }), el("span", { text: fmt(r.avg) }))),
       el("td", { class: "r num", text: dead ? "–" : fmt(r.jitter) }),
       el("td", { class: "r num", text: dead ? "–" : fmt(r.min) }),
       el("td", { class: "r num", text: dead ? "–" : fmt(r.max) }),
-      el("td", { class: "r num" }, r.loss >= 5 ? el("span", { class: "warn-loss", title: "Deutlicher Paketverlust" }, "▲ " + r.loss + " %") : el("span", { text: r.loss + " %" })),
-      el("td", { class: "muted", text: owned + (r.provider ? " · " + r.provider : "") }),
-      el("td", { class: "r" }, live.has(r.host) ? el("span", { class: "muted", text: "live" }) : el("button", { class: "btn small", onclick: () => startLive(r.host) }, "Live"))));
+      el("td", { class: "r num" }, r.loss >= 5 ? el("span", { class: "warn-loss" }, "▲ " + r.loss + " %") : el("span", { text: r.loss + " %" })),
+      el("td", { class: "r num", title: t("stab") }, stabCell(stab.get(r.host))),
+      portCell(r),
+      el("td", { class: "r" }, el("span", { class: "actions" }, switchBtnFor(r), live.has(r.host) ? el("span", { class: "muted", text: t("live") }) : el("button", { class: "btn small", onclick: () => startLive(r.host) }, t("liveBtn"))))));
   }
-  renderTunnels();
 }
-for (const th of document.querySelectorAll("#scanTable th[data-k]")) th.onclick = () => {
-  if (sortKey === th.dataset.k) sortDir = -sortDir; else { sortKey = th.dataset.k; sortDir = 1; }
-  renderScan();
+for (const th of document.querySelectorAll("#scanTable th[data-k]")) th.onclick = () => { if (sortKey === th.dataset.k) sortDir = -sortDir; else { sortKey = th.dataset.k; sortDir = 1; } renderScan(); };
+
+// ---------- Wechsel ----------
+let swPending = null;
+function askSwitch(tn, host) {
+  if (!tn || !host) return;
+  swPending = { tunnel_id: tn.tunnel_id, host };
+  const r = relayBy.get(host);
+  $("swFrom").textContent = tn.host || "?"; $("swTo").textContent = host;
+  $("swSub").textContent = `${t("tunnel")} ${tn.name ? t("quoted", { n: tn.name }) + " · " : ""}${tn.iface}${r ? " · " + r.city + ", " + regionName(r.cc) : ""}`;
+  $("swDlg").hidden = false;
+}
+$("swCancel").onclick = () => { $("swDlg").hidden = true; swPending = null; };
+$("swGo").onclick = async () => {
+  $("swDlg").hidden = true; if (!swPending) return;
+  try { sw = await api("/api/switch/start", swPending); renderBanners(); renderTunnels(); } catch (e) { toast(e.message); }
+  swPending = null;
 };
 
 // ---------- Verbinden, Einstellungen ----------
 $("connectForm").onsubmit = async (e) => {
-  e.preventDefault();
-  $("cErr").hidden = true; $("cBtn").disabled = true; $("cBtn").textContent = "Verbinde …";
-  try {
-    await api("/api/connect", { host: $("cHost").value.trim(), port: +$("cPort").value || 22, user: $("cUser").value.trim() || "root", password: $("cPass").value });
-    $("cPass").value = ""; $("connectDlg").hidden = true; toast("Verbunden – Schlüssel auf dem Router hinterlegt");
-  } catch (err) { $("cErr").textContent = err.message; $("cErr").hidden = false; }
-  finally { $("cBtn").disabled = false; $("cBtn").textContent = "Verbinden"; }
+  e.preventDefault(); $("cErr").hidden = true; $("cBtn").disabled = true; $("cBtn").textContent = t("connecting");
+  try { await api("/api/connect", { host: $("cHost").value.trim(), port: +$("cPort").value || 22, user: $("cUser").value.trim() || "root", password: $("cPass").value }); $("cPass").value = ""; $("connectDlg").hidden = true; toast(t("keyInstalled")); }
+  catch (err) { $("cErr").textContent = err.message; $("cErr").hidden = false; }
+  finally { $("cBtn").disabled = false; $("cBtn").textContent = t("connect"); }
 };
-$("btnSettings").onclick = () => { renderSettings(); $("settingsDlg").hidden = false; };
-$("btnCloseSettings").onclick = () => $("settingsDlg").hidden = true;
-$("settingsDlg").onclick = (e) => { if (e.target === $("settingsDlg")) $("settingsDlg").hidden = true; };
-$("btnForget").onclick = async () => {
-  try { await api("/api/forget", {}); $("settingsDlg").hidden = true; series.clear(); toast("Router-Zugang zurückgesetzt"); } catch (e) { toast(e.message); }
-};
-$("csvToggle").onchange = (e) => api("/api/settings", { log_csv: e.target.checked }).catch(err => toast(err.message));
+function renderSettings() {
+  if (!S) return;
+  for (const b of $("langSeg").querySelectorAll("button")) b.setAttribute("aria-pressed", b.dataset.v === LANG);
+  $("autostartRow").hidden = S.autostart == null; if (S.autostart != null) $("setAutostart").checked = S.autostart;
+  $("setAlerts").checked = !!S.alerts; $("setAlertLoss").value = String(S.alert_loss); $("setAlertExtra").value = String(S.alert_extra_ms);
+  $("setAutoScan").value = String(S.auto_scan_min || 0);
+  const kv = $("setKv"); kv.replaceChildren();
+  const add = (k, v, mono) => kv.append(el("span", { class: "k", text: k }), el("span", { class: mono ? "mono" : "", text: v }));
+  add(t("router"), `${S.router_user}@${S.router_host}:${S.router_port}`);
+  add(t("connVia"), S.connected ? t("connKey") : (S.has_key ? t("disconnected") : t("notSetUp")));
+  add(t("wanIf"), S.router.wan || t("notDetected"));
+  add(t("fastPing"), S.router.fastping ? t("yesFast") : t("noFast"));
+  add(t("switchApi"), S.switch && S.switch.available ? t("available") : t("unavailable") + (S.switch && S.switch.reason ? " – " + S.switch.reason : ""));
+  if (S.fingerprint) add(t("fp"), S.fingerprint, true);
+  add(t("dataDir"), S.data_dir, true);
+  add(t("version"), S.version);
+}
+const setting = (body) => api("/api/settings", body).catch(e => toast(e.message));
+for (const b of $("langSeg").querySelectorAll("button")) b.onclick = () => setting({ lang: b.dataset.v });
+$("setAutostart").onchange = (e) => setting({ autostart: e.target.checked });
+$("setAlerts").onchange = (e) => setting({ alerts: e.target.checked });
+$("setAlertLoss").onchange = (e) => setting({ alert_loss: +e.target.value });
+$("setAlertExtra").onchange = (e) => setting({ alert_extra_ms: +e.target.value });
+$("setAutoScan").onchange = (e) => setting({ auto_scan_min: +e.target.value });
+$("btnSettings").onclick = () => { renderSettings(); $("setDlg").hidden = false; };
+$("btnCloseSettings").onclick = () => $("setDlg").hidden = true;
+for (const d of ["setDlg", "swDlg"]) $(d).onclick = (e) => { if (e.target === $(d)) $(d).hidden = true; };
+$("btnForget").onclick = async () => { try { await api("/api/forget", {}); $("setDlg").hidden = true; series.clear(); toast(t("accessReset")); } catch (e) { toast(e.message); } };
+$("csvToggle").onchange = (e) => setting({ log_csv: e.target.checked });
 $("btnOpenData").onclick = () => api("/api/open-data", {}).catch(err => toast(err.message));
-$("btnRefreshRelays").onclick = async () => { try { await api("/api/relays/refresh", {}); await loadRelays(); toast("Serverliste aktualisiert"); } catch (e) { toast(e.message); } };
+$("btnRefreshRelays").onclick = async () => { try { await api("/api/relays/refresh", {}); await loadRelays(); toast(t("relaysUpdated")); } catch (e) { toast(e.message); } };
 $("btnQuit").onclick = async () => {
   try { await api("/api/quit", {}); } catch {}
-  document.body.replaceChildren(el("div", { class: "empty", style: "padding-top:30vh" }, el("h2", { text: "RelayPing beendet" }), el("p", { text: "Du kannst diesen Tab schließen." })));
+  document.body.replaceChildren(el("div", { class: "empty", style: "padding-top:30vh" }, el("h2", { text: t("quitDone") }), el("p", { text: t("quitTab") })));
 };
-document.addEventListener("keydown", (e) => { if (e.key === "Escape") $("settingsDlg").hidden = true; });
+document.addEventListener("keydown", (e) => { if (e.key === "Escape") { $("setDlg").hidden = true; $("swDlg").hidden = true; } });
 
 // ---------- Start ----------
 (async () => {
+  applyI18n();
+  try { const saved = localStorage.getItem("rp-tab"); if (saved) document.querySelector(`.tab[data-tab="${saved}"]`)?.click(); } catch {}
   try { scan = await api("/api/scan"); if (!scan.results || !scan.results.length) scan = scan.running ? scan : null; } catch {}
   connectEvents();
   loop();
