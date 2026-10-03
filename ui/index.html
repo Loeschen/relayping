@@ -1,0 +1,771 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RelayPing</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23161a21'/%3E%3Cpath d='M5 21h5l3-9 4 13 3-8h7' fill='none' stroke='%233ee6c4' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<style>
+:root {
+  color-scheme: light;
+  --page: #f4f5f7;
+  --surface: #fcfcfb;
+  --surface-2: #f0f1f3;
+  --ink: #0b0b0b;
+  --ink-2: #52514e;
+  --muted: #7d7b75;
+  --grid: #e1e0d9;
+  --axis: #c3c2b7;
+  --border: rgba(11,11,11,0.10);
+  --accent: #0f8f78;
+  --accent-ink: #ffffff;
+  --accent-soft: rgba(15,143,120,0.10);
+  --good: #0ca30c; --good-ink: #006300;
+  --warning: #fab219; --serious: #ec835a; --critical: #d03b3b;
+  --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a; --s4: #eda100;
+  --s5: #e87ba4; --s6: #008300; --s7: #4a3aa7; --s8: #e34948;
+  --shadow: 0 1px 2px rgba(0,0,0,.04), 0 4px 16px rgba(0,0,0,.05);
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+    --page: #0e1116;
+    --surface: #161a21;
+    --surface-2: #1d222b;
+    --ink: #ffffff;
+    --ink-2: #c3c6cf;
+    --muted: #8a8f9a;
+    --grid: #252a33;
+    --axis: #353b46;
+    --border: rgba(255,255,255,0.09);
+    --accent: #3ee6c4;
+    --accent-ink: #06231d;
+    --accent-soft: rgba(62,230,196,0.10);
+    --good-ink: #2fc42f;
+    --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500;
+    --s5: #d55181; --s6: #008300; --s7: #9085e9; --s8: #e66767;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.25);
+  }
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; background: var(--page); color: var(--ink); }
+body { font: 14px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; min-height: 100vh; }
+button, input, select { font: inherit; color: inherit; }
+.num { font-variant-numeric: tabular-nums; }
+.wrap { max-width: 1240px; margin: 0 auto; padding: 0 24px 40px; }
+
+/* Kopfzeile */
+header { position: sticky; top: 0; z-index: 20; background: color-mix(in srgb, var(--page) 88%, transparent); backdrop-filter: blur(10px); border-bottom: 1px solid var(--border); }
+header .wrap { display: flex; align-items: center; gap: 16px; padding-top: 12px; padding-bottom: 12px; }
+.brand { display: flex; align-items: center; gap: 10px; font-weight: 650; font-size: 16px; letter-spacing: -.01em; }
+.brand svg { width: 28px; height: 28px; }
+.status { display: flex; align-items: center; gap: 8px; padding: 5px 12px 5px 10px; border-radius: 999px; background: var(--surface); border: 1px solid var(--border); color: var(--ink-2); font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); flex: none; }
+.dot.ok { background: var(--good); box-shadow: 0 0 0 3px color-mix(in srgb, var(--good) 25%, transparent); }
+.dot.bad { background: var(--critical); }
+.dot.wait { background: var(--warning); }
+.spacer { flex: 1; }
+.btn { border: 1px solid var(--border); background: var(--surface); padding: 7px 14px; border-radius: 9px; cursor: pointer; transition: background .15s, border-color .15s; white-space: nowrap; }
+.btn:hover { background: var(--surface-2); }
+.btn:disabled { opacity: .45; cursor: not-allowed; }
+.btn.primary { background: var(--accent); color: var(--accent-ink); border-color: transparent; font-weight: 600; }
+.btn.primary:hover { filter: brightness(1.06); }
+.btn.ghost { background: transparent; border-color: transparent; color: var(--ink-2); }
+.btn.ghost:hover { background: var(--surface-2); color: var(--ink); }
+.btn.small { padding: 4px 10px; font-size: 12.5px; border-radius: 7px; }
+.icon-btn { width: 34px; height: 34px; display: grid; place-items: center; padding: 0; }
+
+/* Tunnel-Leiste */
+.tunnels { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px; margin: 22px 0 6px; }
+.tunnel { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 16px 18px; box-shadow: var(--shadow); display: grid; grid-template-columns: 1fr auto; gap: 4px 16px; align-items: center; }
+.tunnel .label { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); font-weight: 600; }
+.tunnel .server { font-size: 17px; font-weight: 650; }
+.tunnel .meta { color: var(--ink-2); font-size: 13px; }
+.tunnel .big { grid-row: 1 / span 3; grid-column: 2; text-align: right; }
+.tunnel .big .v { font-size: 30px; font-weight: 650; letter-spacing: -.02em; }
+.tunnel .big .u { color: var(--muted); font-size: 13px; margin-left: 2px; }
+.tunnel .hint { grid-column: 1 / -1; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border); display: flex; align-items: center; gap: 10px; flex-wrap: wrap; font-size: 13px; color: var(--ink-2); }
+.tunnel .hint b { color: var(--ink); font-weight: 600; }
+.soon { font-size: 11px; padding: 2px 7px; border-radius: 999px; background: var(--surface-2); color: var(--muted); border: 1px solid var(--border); }
+
+/* Reiter */
+.tabs { display: flex; gap: 4px; margin: 22px 0 14px; border-bottom: 1px solid var(--border); }
+.tab { background: none; border: 0; padding: 10px 14px; cursor: pointer; color: var(--ink-2); font-weight: 550; border-bottom: 2px solid transparent; margin-bottom: -1px; }
+.tab[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--accent); }
+.panel[hidden] { display: none !important; }
+
+/* Steuerzeile */
+.controls { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-bottom: 14px; }
+.seg { display: inline-flex; background: var(--surface); border: 1px solid var(--border); border-radius: 9px; padding: 3px; }
+.seg button { border: 0; background: none; padding: 5px 11px; border-radius: 6px; cursor: pointer; color: var(--ink-2); font-size: 13px; }
+.seg button[aria-pressed="true"] { background: var(--surface-2); color: var(--ink); font-weight: 600; box-shadow: inset 0 0 0 1px var(--border); }
+.field { display: flex; align-items: center; gap: 8px; }
+input[type=text], input[type=password], input[type=number], select { background: var(--surface); border: 1px solid var(--border); border-radius: 9px; padding: 7px 11px; outline: none; }
+input:focus, select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+.search { min-width: 260px; }
+
+/* Karten */
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; box-shadow: var(--shadow); }
+.chart-card { padding: 16px 16px 10px; }
+.chart-head { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; margin: 0 4px 8px; }
+.chart-head h3 { margin: 0; font-size: 14px; font-weight: 650; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 12.5px; color: var(--ink-2); }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.key { width: 16px; height: 3px; border-radius: 2px; display: inline-block; }
+.key.loss { width: 3px; height: 10px; background: var(--critical); }
+.chart-box { position: relative; height: 300px; }
+.chart-box canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+.tip { position: absolute; pointer-events: none; background: var(--surface); border: 1px solid var(--border); box-shadow: var(--shadow); border-radius: 10px; padding: 8px 10px; font-size: 12.5px; min-width: 170px; z-index: 5; }
+.tip .t { color: var(--muted); margin-bottom: 4px; }
+.tip .row { display: flex; align-items: center; gap: 8px; padding: 1px 0; }
+.tip .row b { min-width: 58px; text-align: right; font-weight: 650; }
+.tip .row .n { color: var(--ink-2); }
+.empty { padding: 50px 20px; text-align: center; color: var(--muted); }
+
+.mons { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 14px; margin-top: 14px; }
+.mon { padding: 14px 16px; position: relative; }
+.mon .top { display: flex; align-items: center; gap: 8px; }
+.mon .host { font-weight: 650; }
+.mon .city { color: var(--ink-2); font-size: 12.5px; margin-top: 1px; }
+.mon .x { margin-left: auto; width: 26px; height: 26px; border-radius: 7px; border: 0; background: none; color: var(--muted); cursor: pointer; font-size: 16px; line-height: 1; }
+.mon .x:hover { background: var(--surface-2); color: var(--ink); }
+.mon .now { display: flex; align-items: baseline; gap: 4px; margin: 10px 0 8px; }
+.mon .now .v { font-size: 28px; font-weight: 650; letter-spacing: -.02em; }
+.mon .now .u { color: var(--muted); font-size: 13px; }
+.mon .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; font-size: 12px; }
+.mon .stats div { display: flex; flex-direction: column; }
+.mon .stats .k { color: var(--muted); }
+.mon .stats .val { font-weight: 600; }
+.mon .state { font-size: 12px; color: var(--muted); margin-top: 6px; min-height: 16px; }
+.badge { font-size: 11px; font-weight: 600; padding: 2px 7px; border-radius: 999px; background: var(--accent-soft); color: var(--accent); white-space: nowrap; }
+.badge.best { background: color-mix(in srgb, var(--good) 14%, transparent); color: var(--good-ink); }
+.warn-loss { color: var(--critical); font-weight: 600; display: inline-flex; align-items: center; gap: 3px; }
+
+/* Rangliste */
+.chips { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.chip { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--border); background: var(--surface); border-radius: 999px; padding: 4px 6px 4px 12px; font-size: 13px; }
+.chip button { border: 0; background: none; color: var(--muted); cursor: pointer; width: 20px; height: 20px; border-radius: 50%; }
+.chip button:hover { background: var(--surface-2); color: var(--ink); }
+.progress { height: 4px; background: var(--surface-2); border-radius: 4px; overflow: hidden; margin: 0 0 14px; }
+.progress div { height: 100%; width: 0; background: var(--accent); transition: width .3s; }
+.ctabs { display: flex; gap: 6px; margin: 0 0 10px; flex-wrap: wrap; }
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+th { text-align: left; font-weight: 600; color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .04em; padding: 10px 12px; border-bottom: 1px solid var(--border); cursor: pointer; user-select: none; white-space: nowrap; }
+th.r, td.r { text-align: right; }
+th[aria-sort]::after { content: " ↓"; color: var(--accent); }
+th[aria-sort="descending"]::after { content: " ↑"; }
+td { padding: 9px 12px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+tr:hover td { background: color-mix(in srgb, var(--surface-2) 60%, transparent); }
+tr.active td { background: var(--accent-soft); }
+.barcell { display: flex; align-items: center; justify-content: flex-end; gap: 8px; }
+.bar { height: 6px; border-radius: 3px; background: var(--s1); opacity: .85; }
+.muted { color: var(--muted); }
+
+footer { margin-top: 28px; display: flex; flex-wrap: wrap; gap: 10px 22px; align-items: center; color: var(--muted); font-size: 12.5px; }
+.disclaimer { flex-basis: 100%; font-size: 11.5px; }
+footer a, .link { color: var(--ink-2); text-decoration: underline; text-underline-offset: 2px; cursor: pointer; background: none; border: 0; padding: 0; font-size: inherit; }
+.toggle { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; }
+.toggle input { accent-color: var(--accent); width: 16px; height: 16px; }
+
+/* Dialoge */
+.overlay { position: fixed; inset: 0; background: rgba(5,8,12,.55); backdrop-filter: blur(3px); display: grid; place-items: center; z-index: 50; padding: 20px; }
+.overlay[hidden] { display: none; }
+.dialog { width: min(460px, 100%); background: var(--surface); border: 1px solid var(--border); border-radius: 16px; box-shadow: 0 20px 60px rgba(0,0,0,.35); padding: 24px; }
+.dialog h2 { margin: 0 0 6px; font-size: 18px; }
+.dialog p { margin: 0 0 16px; color: var(--ink-2); }
+.dialog label { display: block; font-size: 12.5px; color: var(--ink-2); margin: 12px 0 5px; font-weight: 550; }
+.dialog input { width: 100%; }
+.row2 { display: grid; grid-template-columns: 1fr 90px 110px; gap: 10px; }
+.dialog .actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
+.err { color: var(--critical); background: color-mix(in srgb, var(--critical) 10%, transparent); border-radius: 9px; padding: 9px 12px; margin-top: 14px; font-size: 13px; }
+.err[hidden] { display: none; }
+.note { font-size: 12.5px; color: var(--muted); margin-top: 12px; }
+.kv { display: grid; grid-template-columns: auto 1fr; gap: 6px 14px; font-size: 13px; margin: 8px 0 4px; }
+.kv .k { color: var(--muted); }
+.mono { font-family: ui-monospace, "Cascadia Mono", Consolas, monospace; font-size: 12px; word-break: break-all; }
+.toast { position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%); background: var(--ink); color: var(--page); padding: 10px 16px; border-radius: 10px; font-size: 13px; z-index: 60; box-shadow: var(--shadow); max-width: 90vw; }
+.toast[hidden] { display: none; }
+@media (max-width: 640px) { .wrap { padding: 0 14px 30px; } .search { min-width: 0; flex: 1; } .status .extra { display: none; } }
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <div class="brand">
+      <svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="8" fill="var(--surface-2)"/><path d="M5 21h5l3-9 4 13 3-8h7" fill="none" stroke="var(--accent)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      RelayPing <span class="soon" title="Vorabversion">Beta</span>
+    </div>
+    <div class="status" id="status"><span class="dot" id="statusDot"></span><span id="statusText">Starte …</span></div>
+    <div class="spacer"></div>
+    <button class="btn ghost icon-btn" id="btnSettings" title="Einstellungen" aria-label="Einstellungen">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+    </button>
+    <button class="btn small" id="btnQuit" title="Programm beenden">Beenden</button>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="tunnels" id="tunnels" aria-label="Aktive Tunnel"></section>
+
+  <nav class="tabs" role="tablist">
+    <button class="tab" role="tab" id="tabLive" aria-selected="true" aria-controls="panelLive">Live</button>
+    <button class="tab" role="tab" id="tabScan" aria-selected="false" aria-controls="panelScan">Rangliste</button>
+  </nav>
+
+  <section class="panel" id="panelLive" role="tabpanel">
+    <div class="controls">
+      <div class="seg" role="group" aria-label="Zeitraum" id="rangeSeg">
+        <button data-s="60" aria-pressed="false">1 Min</button>
+        <button data-s="300" aria-pressed="true">5 Min</button>
+        <button data-s="900" aria-pressed="false">15 Min</button>
+      </div>
+      <div class="spacer"></div>
+      <div class="field">
+        <input type="text" class="search" id="addInput" list="relayList" placeholder="Server hinzufügen, z. B. de-fra oder Stockholm" autocomplete="off">
+        <datalist id="relayList"></datalist>
+        <button class="btn" id="btnAdd">Live beobachten</button>
+      </div>
+    </div>
+    <div class="card chart-card">
+      <div class="chart-head">
+        <h3>Latenz in ms</h3>
+        <div class="legend" id="legend"></div>
+      </div>
+      <div class="chart-box" id="chartBox">
+        <canvas id="chart" role="img" aria-label="Live-Latenz der beobachteten Server"></canvas>
+        <div class="tip" id="tip" hidden></div>
+        <div class="empty" id="chartEmpty" hidden>Noch keine Server live. Oben einen Server hinzufügen oder in der Rangliste auf „Live" klicken.</div>
+      </div>
+    </div>
+    <div class="mons" id="mons"></div>
+  </section>
+
+  <section class="panel" id="panelScan" role="tabpanel" hidden>
+    <div class="controls">
+      <div class="chips" id="ccChips"></div>
+      <select id="ccAdd" aria-label="Land hinzufügen"><option value="">+ Land</option></select>
+      <div class="spacer"></div>
+      <label class="field muted">Pings pro Server
+        <select id="pings"><option>10</option><option selected>20</option><option>30</option><option>50</option></select>
+      </label>
+      <button class="btn primary" id="btnScan">Messen</button>
+    </div>
+    <div class="progress" id="progress" hidden><div></div></div>
+    <div class="card" style="padding: 8px 6px 4px;">
+      <div class="ctabs" id="ctabs" style="padding: 8px 8px 0;"></div>
+      <div class="table-wrap">
+        <table id="scanTable">
+          <thead><tr>
+            <th data-k="rank" class="r">#</th>
+            <th data-k="host">Server</th>
+            <th data-k="city">Stadt</th>
+            <th data-k="avg" class="r">Mittel</th>
+            <th data-k="jitter" class="r">Jitter</th>
+            <th data-k="min" class="r">Min</th>
+            <th data-k="max" class="r">Max</th>
+            <th data-k="loss" class="r">Verlust</th>
+            <th data-k="owned">Betreiber</th>
+            <th></th>
+          </tr></thead>
+          <tbody id="scanBody"></tbody>
+        </table>
+      </div>
+      <div class="empty" id="scanEmpty">Noch keine Messung. Länder wählen und auf „Messen" klicken – jeder Server wird vom Router aus angepingt, am Tunnel vorbei.</div>
+    </div>
+  </section>
+
+  <footer>
+    <span id="relayInfo">Serverliste wird geladen …</span>
+    <button class="link" id="btnRefreshRelays">Aktualisieren</button>
+    <span class="spacer"></span>
+    <label class="toggle"><input type="checkbox" id="csvToggle"> Verlauf als CSV speichern</label>
+    <button class="link" id="btnOpenData">Ordner öffnen</button>
+    <span class="disclaimer">Inoffizielles Community-Tool · nicht mit Mullvad VPN AB oder GL.iNet verbunden</span>
+  </footer>
+</main>
+
+<!-- Verbinden -->
+<div class="overlay" id="connectDlg" hidden>
+  <form class="dialog" id="connectForm" autocomplete="off">
+    <h2>Mit dem GL.iNet-Router verbinden</h2>
+    <p>Einmalig mit dem Passwort des GL.iNet-Admin-Panels anmelden. Danach hinterlegt das Tool einen eigenen Schlüssel auf dem Router – das Passwort wird nirgends gespeichert.</p>
+    <div class="row2">
+      <div><label for="cHost">Router-Adresse</label><input type="text" id="cHost" value="192.168.8.1"></div>
+      <div><label for="cPort">SSH-Port</label><input type="number" id="cPort" value="22" min="1" max="65535"></div>
+      <div><label for="cUser">Benutzer</label><input type="text" id="cUser" value="root"></div>
+    </div>
+    <label for="cPass">Passwort</label>
+    <input type="password" id="cPass" autocomplete="current-password" autofocus>
+    <div class="err" id="cErr" hidden></div>
+    <div class="actions"><button class="btn primary" id="cBtn" type="submit">Verbinden</button></div>
+    <div class="note">Gemessen wird auf dem Router selbst über die WAN-Leitung – vom PC aus läge immer der aktive Tunnel dazwischen.</div>
+  </form>
+</div>
+
+<!-- Einstellungen -->
+<div class="overlay" id="settingsDlg" hidden>
+  <div class="dialog">
+    <h2>Einstellungen</h2>
+    <div class="kv" id="setKv"></div>
+    <div class="err" id="setErr" hidden></div>
+    <div class="actions" style="justify-content: space-between;">
+      <button class="btn" id="btnForget" title="Schlüssel und gemerkten Router-Fingerabdruck löschen">Router-Zugang zurücksetzen</button>
+      <button class="btn primary" id="btnCloseSettings">Schließen</button>
+    </div>
+    <div class="note">Zurücksetzen ist nötig, wenn der Router zurückgesetzt oder getauscht wurde. Danach einmal neu mit Passwort anmelden.</div>
+  </div>
+</div>
+
+<div class="toast" id="toast" hidden></div>
+
+<script>
+"use strict";
+const $ = (id) => document.getElementById(id);
+const el = (tag, props = {}, ...kids) => {
+  const e = document.createElement(tag);
+  for (const [k, v] of Object.entries(props)) {
+    if (k === "class") e.className = v;
+    else if (k === "text") e.textContent = v;
+    else if (k.startsWith("on")) e.addEventListener(k.slice(2), v);
+    else if (v !== undefined && v !== null && v !== false) e.setAttribute(k, v === true ? "" : v);
+  }
+  for (const k of kids) if (k != null) e.append(k);
+  return e;
+};
+const fmt = (v, d = 1) => (v == null || isNaN(v)) ? "–" : v.toLocaleString("de-DE", { minimumFractionDigits: d, maximumFractionDigits: d });
+const regionName = (() => { try { const dn = new Intl.DisplayNames(["de"], { type: "region" }); return (cc) => { try { return dn.of(cc.toUpperCase()) || cc.toUpperCase(); } catch { return cc.toUpperCase(); } }; } catch { return (cc) => cc.toUpperCase(); } })();
+const css = (name) => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+
+async function api(path, body) {
+  const opt = body === undefined ? {} : { method: "POST", headers: { "Content-Type": "application/json", "X-MLat": "1" }, body: JSON.stringify(body) };
+  const r = await fetch(path, opt);
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(j.error || ("Fehler " + r.status));
+  return j;
+}
+let toastT;
+function toast(msg) { const t = $("toast"); t.textContent = msg; t.hidden = false; clearTimeout(toastT); toastT = setTimeout(() => t.hidden = true, 4200); }
+
+// ---------- Zustand ----------
+let S = null;                 // Serverzustand
+let relays = [];              // Serverliste
+const relayBy = new Map();
+const series = new Map();     // host -> {color, samples:[{t,ms}]}
+const colorOf = new Map();    // Farbe folgt dem Server, nie dem Rang
+let rangeSec = 300;
+let scan = null;
+let scanCC = "all";
+let sortKey = "rank", sortDir = 1;
+const MAX_KEEP = 16 * 60 * 1000;
+
+function colorFor(host) {
+  if (!colorOf.has(host)) {
+    const used = new Set(colorOf.values());
+    let slot = 1; while (used.has(slot) && slot < 8) slot++;
+    colorOf.set(host, slot);
+  }
+  return `var(--s${colorOf.get(host)})`;
+}
+const resolveColor = (c) => c.startsWith("var(") ? css(c.slice(4, -1)) : c;
+
+// ---------- Live-Ereignisse ----------
+function connectEvents() {
+  const es = new EventSource("/api/events");
+  es.addEventListener("state", (e) => { S = JSON.parse(e.data); renderState(); });
+  es.addEventListener("sample", (e) => {
+    const s = JSON.parse(e.data);
+    let x = series.get(s.host);
+    if (!x) { x = { samples: [] }; series.set(s.host, x); }
+    x.samples.push({ t: s.t, ms: s.ms < 0 ? null : s.ms });
+    const cut = Date.now() - MAX_KEEP;
+    while (x.samples.length && x.samples[0].t < cut) x.samples.shift();
+  });
+  es.addEventListener("scan", (e) => { scan = JSON.parse(e.data); renderScan(); });
+  es.onerror = () => { $("statusDot").className = "dot bad"; $("statusText").textContent = "Programm nicht erreichbar – läuft die .exe noch?"; };
+}
+
+// ---------- Kopf, Tunnel, Dialoge ----------
+function renderState() {
+  if (!S) return;
+  const dot = $("statusDot"), txt = $("statusText");
+  if (S.connected) {
+    dot.className = "dot ok";
+    const parts = ["Router verbunden"];
+    if (S.router.wan) parts.push("WAN " + S.router.wan); else parts.push("WAN nicht erkannt");
+    if (S.router.model) parts.push(S.router.model);
+    txt.textContent = parts.join(" · ");
+  } else if (S.has_key) {
+    dot.className = "dot wait"; txt.textContent = S.error ? "Getrennt – " + S.error : "Verbinde mit " + S.router_host + " …";
+  } else {
+    dot.className = "dot bad"; txt.textContent = "Nicht eingerichtet";
+  }
+  $("connectDlg").hidden = S.has_key;
+  if (!$("connectDlg").hidden) {
+    if (document.activeElement !== $("cHost")) $("cHost").value = S.router_host;
+    $("cPort").value = S.router_port; $("cUser").value = S.router_user;
+    if (S.error) { $("cErr").textContent = S.error; $("cErr").hidden = false; }
+  }
+  $("csvToggle").checked = !!S.log_csv;
+  if (S.relay_count) {
+    const d = new Date(S.relay_date);
+    $("relayInfo").textContent = `Serverliste: ${S.relay_count} WireGuard-Server · Stand ${d.toLocaleDateString("de-DE")} ${d.toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" })} · ${S.relay_source}`;
+  } else if (S.relay_error) $("relayInfo").textContent = S.relay_error;
+  if (S.relay_count && relays.length !== S.relay_count) loadRelays();
+  // Serien entfernen, die nicht mehr beobachtet werden
+  const live = new Set((S.monitors || []).map(m => m.host));
+  for (const h of [...series.keys()]) if (!live.has(h)) series.delete(h);
+  for (const h of [...colorOf.keys()]) if (!live.has(h)) colorOf.delete(h);
+  // Tunnel-Server zuerst einfärben, damit sie über Neustarts hinweg dieselbe Farbe behalten
+  for (const t of (S.router.tunnels || [])) if (live.has(t.host)) colorFor(t.host);
+  for (const h of [...live].sort()) colorFor(h);
+  renderTunnels(); renderMons(); renderSettings();
+  if (scan) renderScan();
+}
+
+function statsFor(host, sec) {
+  const x = series.get(host); if (!x) return null;
+  const cut = Date.now() - sec * 1000;
+  let n = 0, recv = 0, sum = 0, mn = Infinity, mx = -Infinity, js = 0, jn = 0, prev = null, last = null;
+  for (const s of x.samples) {
+    if (s.t < cut) continue;
+    n++;
+    if (s.ms == null) { prev = null; continue; }
+    recv++; sum += s.ms; mn = Math.min(mn, s.ms); mx = Math.max(mx, s.ms);
+    if (prev != null) { js += Math.abs(s.ms - prev); jn++; }
+    prev = s.ms;
+  }
+  const lastS = x.samples[x.samples.length - 1];
+  if (lastS) last = lastS.ms;
+  if (!n) return null;
+  return { n, loss: (n - recv) * 100 / n, avg: recv ? sum / recv : null, min: recv ? mn : null, max: recv ? mx : null, jitter: jn ? js / jn : null, last };
+}
+
+function bestFromScan(cc) {
+  if (!scan || !scan.results || scan.running) return null;
+  return scan.results.find(r => r.cc === cc && r.recv > 0) || null;
+}
+
+const scanTime = () => scan && scan.finished ? new Date(scan.finished).toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" }) + " Uhr" : "";
+function renderTunnels() {
+  const box = $("tunnels"); box.replaceChildren();
+  const tun = (S && S.router && S.router.tunnels) || [];
+  if (!S || !S.connected) return;
+  if (!tun.length) {
+    box.append(el("div", { class: "tunnel" }, el("div", {}, el("div", { class: "label", text: "Tunnel" }), el("div", { class: "meta", text: S.router.has_wg ? "Gerade keine aktive WireGuard-Verbindung erkannt." : "Aktive Tunnel nicht erkennbar (Befehl „wg“ fehlt auf dem Router)." }))));
+    return;
+  }
+  for (const t of tun) {
+    const st = t.host ? statsFor(t.host, 60) : null;
+    const r = relayBy.get(t.host);
+    const best = t.cc ? bestFromScan(t.cc) : null;
+    const hint = el("div", { class: "hint" });
+    if (best && best.host !== t.host) {
+      const mine = scan.results.find(x => x.host === t.host);
+      const diff = mine && mine.recv ? (mine.avg - best.avg) : null;
+      hint.append(el("span", {}, "Bester laut Rangliste von " + scanTime() + ": ", el("b", { text: best.host }), diff != null ? ` (${fmt(diff)} ms schneller)` : ""));
+    } else if (best && best.host === t.host) {
+      hint.append(el("span", {}, el("b", { text: "Dieser Server ist laut Rangliste der beste in " + regionName(t.cc) + "." })));
+    } else {
+      hint.append(el("span", { text: "Rangliste messen, um den besten Server in " + (t.cc ? regionName(t.cc) : "diesem Land") + " zu finden." }));
+    }
+    hint.append(el("span", { class: "spacer" }), el("button", { class: "btn small", disabled: true, title: "Folgt, sobald der Umschalt-Befehl der GL.iNet-Firmware bekannt ist" }, "Besten wählen & wechseln ", el("span", { class: "soon", text: "folgt" })));
+    box.append(el("div", { class: "tunnel" },
+      el("div", { class: "label", text: "Tunnel " + t.iface }),
+      el("div", { class: "server", text: t.host || t.ip }),
+      el("div", { class: "meta", text: t.host ? `${r ? r.city : ""}${r ? ", " : ""}${regionName(t.cc)}${r && r.provider ? " · " + r.provider : ""}` : "Server nicht in der Mullvad-Liste" }),
+      el("div", { class: "big num" }, el("span", { class: "v", text: st && st.last != null ? fmt(st.last) : "–" }), el("span", { class: "u", text: "ms" }),
+        el("div", { class: "meta num", text: st ? `Ø ${fmt(st.avg)} · Verlust ${fmt(st.loss, 0)} %` : "warte auf Messwerte" })),
+      hint));
+  }
+}
+
+function renderMons() {
+  const box = $("mons"); box.replaceChildren();
+  const mons = (S && S.monitors) || [];
+  const tunHosts = new Set(((S && S.router && S.router.tunnels) || []).map(t => t.host));
+  for (const m of mons) {
+    const st = statsFor(m.host, rangeSec);
+    const lossEl = st && st.loss >= 5 ? el("span", { class: "val warn-loss num", title: "Deutlicher Paketverlust" }, "▲ " + fmt(st.loss, 0) + " %") : el("span", { class: "val num", text: st ? fmt(st.loss, 0) + " %" : "–" });
+    box.append(el("div", { class: "card mon", "data-host": m.host },
+      el("div", { class: "top" },
+        el("span", { class: "key", style: `background:${colorFor(m.host)}` }),
+        el("span", { class: "host", text: m.host }),
+        tunHosts.has(m.host) ? el("span", { class: "badge", text: "Tunnel" }) : null,
+        el("button", { class: "x", title: "Nicht mehr beobachten", "aria-label": "Nicht mehr beobachten", onclick: () => stopLive(m.host) }, "×")),
+      el("div", { class: "city", text: `${m.city}, ${regionName(m.cc)}` }),
+      el("div", { class: "now num" }, el("span", { class: "v", text: st && st.last != null ? fmt(st.last) : (st && st.n ? "verloren" : "–") }), st && st.last != null ? el("span", { class: "u", text: "ms" }) : null),
+      el("div", { class: "stats" },
+        el("div", {}, el("span", { class: "k", text: "Ø" }), el("span", { class: "val num", text: st ? fmt(st.avg) : "–" })),
+        el("div", {}, el("span", { class: "k", text: "Jitter" }), el("span", { class: "val num", text: st ? fmt(st.jitter) : "–" })),
+        el("div", {}, el("span", { class: "k", text: "Min / Max" }), el("span", { class: "val num", text: st && st.min != null ? `${fmt(st.min, 0)}/${fmt(st.max, 0)}` : "–" })),
+        el("div", {}, el("span", { class: "k", text: "Verlust" }), lossEl)),
+      el("div", { class: "state", text: m.status === "laeuft" ? "" : stateText(m.status) })));
+  }
+  renderLegend();
+}
+const stateText = (s) => ({ verbinde: "verbinde …", "keine Antwort": "Server antwortet nicht", "nicht erreichbar": "nicht erreichbar" }[s] || s);
+
+function renderLegend() {
+  const lg = $("legend"); lg.replaceChildren();
+  const mons = (S && S.monitors) || [];
+  for (const m of mons) lg.append(el("span", {}, el("i", { class: "key", style: `background:${colorFor(m.host)}` }), m.host));
+  if (mons.length) lg.append(el("span", {}, el("i", { class: "key loss" }), "Paketverlust"));
+  $("chartEmpty").hidden = mons.length > 0;
+}
+
+function renderSettings() {
+  if (!S) return;
+  const kv = $("setKv"); kv.replaceChildren();
+  const add = (k, v, mono) => kv.append(el("span", { class: "k", text: k }), el("span", { class: mono ? "mono" : "", text: v }));
+  add("Router", `${S.router_user}@${S.router_host}:${S.router_port}`);
+  add("Verbindung", S.connected ? "verbunden (Schlüssel)" : (S.has_key ? "getrennt" : "nicht eingerichtet"));
+  add("WAN-Schnittstelle", S.router.wan || "nicht erkannt");
+  add("Schnelle Pings", S.router.fastping ? "ja (0,2 s Abstand)" : "nein (1 s Abstand)");
+  if (S.fingerprint) add("Router-Fingerabdruck", S.fingerprint, true);
+  add("Datenordner", S.data_dir, true);
+  add("Version", S.version);
+}
+
+// ---------- Diagramm ----------
+const cv = $("chart"), ctx = cv.getContext("2d");
+let hoverX = null;
+function niceStep(range, target) {
+  const raw = range / target, p = Math.pow(10, Math.floor(Math.log10(raw))), f = raw / p;
+  return (f < 1.5 ? 1 : f < 3 ? 2 : f < 7 ? 5 : 10) * p;
+}
+function draw() {
+  const box = $("chartBox"), dpr = window.devicePixelRatio || 1;
+  const W = box.clientWidth, H = box.clientHeight;
+  if (cv.width !== Math.round(W * dpr) || cv.height !== Math.round(H * dpr)) { cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr); }
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, W, H);
+  const mons = (S && S.monitors) || [];
+  if (!mons.length) return;
+  const now = Date.now(), t0 = now - rangeSec * 1000;
+  const L = 46, R = 12, T = 10, B = 40, lossLane = 10;
+  const pw = W - L - R, ph = H - T - B - lossLane;
+  let mn = Infinity, mx = -Infinity;
+  for (const m of mons) { const x = series.get(m.host); if (!x) continue; for (const s of x.samples) if (s.t >= t0 && s.ms != null) { mn = Math.min(mn, s.ms); mx = Math.max(mx, s.ms); } }
+  if (!isFinite(mn)) { mn = 0; mx = 50; }
+  const pad = Math.max((mx - mn) * 0.15, 1);
+  let y0 = Math.max(0, mn - pad), y1 = mx + pad;
+  const step = niceStep(y1 - y0, 4);
+  y0 = Math.floor(y0 / step) * step; y1 = Math.ceil(y1 / step) * step;
+  const X = (t) => L + (t - t0) / (now - t0) * pw;
+  const Y = (v) => T + ph - (v - y0) / (y1 - y0) * ph;
+  const muted = css("--muted"), grid = css("--grid"), axis = css("--axis");
+  ctx.font = "11.5px system-ui, -apple-system, 'Segoe UI', sans-serif";
+  // Raster + y-Achse
+  ctx.textAlign = "right"; ctx.textBaseline = "middle"; ctx.fillStyle = muted;
+  for (let v = y0; v <= y1 + 1e-9; v += step) {
+    const y = Math.round(Y(v)) + .5;
+    ctx.strokeStyle = grid; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(L, y); ctx.lineTo(L + pw, y); ctx.stroke();
+    ctx.fillText(fmt(v, step < 1 ? 1 : 0), L - 8, y);
+  }
+  // x-Achse
+  ctx.strokeStyle = axis; ctx.beginPath(); ctx.moveTo(L, T + ph + .5); ctx.lineTo(L + pw, T + ph + .5); ctx.stroke();
+  ctx.textAlign = "center"; ctx.textBaseline = "top";
+  const tickS = rangeSec <= 60 ? 15 : rangeSec <= 300 ? 60 : 180;
+  for (let t = Math.ceil(t0 / (tickS * 1000)) * tickS * 1000; t <= now; t += tickS * 1000) {
+    const x = X(t);
+    if (x < L + 20 || x > L + pw - 20) continue;
+    ctx.fillText(new Date(t).toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit", second: rangeSec <= 60 ? "2-digit" : undefined }), x, T + ph + lossLane + 8);
+  }
+  // Verlust-Spur
+  ctx.fillStyle = muted; ctx.textAlign = "left";
+  const crit = css("--critical");
+  // Linien
+  ctx.save(); ctx.beginPath(); ctx.rect(L, T - 2, pw, ph + 4); ctx.clip();
+  for (const m of mons) {
+    const x = series.get(m.host); if (!x) continue;
+    ctx.strokeStyle = resolveColor(colorFor(m.host)); ctx.lineWidth = 2; ctx.lineJoin = "round"; ctx.lineCap = "round";
+    ctx.beginPath(); let pen = false;
+    for (const s of x.samples) {
+      if (s.t < t0 - 2000) continue;
+      if (s.ms == null) { pen = false; continue; }
+      const px = X(s.t), py = Y(s.ms);
+      if (!pen) { ctx.moveTo(px, py); pen = true; } else ctx.lineTo(px, py);
+    }
+    ctx.stroke();
+  }
+  ctx.restore();
+  for (const m of mons) {
+    const x = series.get(m.host); if (!x) continue;
+    ctx.fillStyle = crit;
+    for (const s of x.samples) if (s.ms == null && s.t >= t0) ctx.fillRect(Math.round(X(s.t)) - 1, T + ph + 2, 2, lossLane - 3);
+  }
+  // Fadenkreuz + Tooltip
+  const tip = $("tip");
+  if (hoverX != null && hoverX >= L && hoverX <= L + pw) {
+    const ht = t0 + (hoverX - L) / pw * (now - t0);
+    ctx.strokeStyle = axis; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(Math.round(hoverX) + .5, T); ctx.lineTo(Math.round(hoverX) + .5, T + ph + lossLane); ctx.stroke();
+    tip.replaceChildren(el("div", { class: "t num", text: new Date(ht).toLocaleTimeString("de-DE") }));
+    let any = false;
+    for (const m of mons) {
+      const x = series.get(m.host); if (!x) continue;
+      let bestS = null, bd = 1200;
+      for (const s of x.samples) { const d = Math.abs(s.t - ht); if (d < bd) { bd = d; bestS = s; } }
+      if (!bestS) continue;
+      any = true;
+      if (bestS.ms != null) {
+        ctx.fillStyle = css("--surface"); ctx.beginPath(); ctx.arc(X(bestS.t), Y(bestS.ms), 5, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = resolveColor(colorFor(m.host)); ctx.beginPath(); ctx.arc(X(bestS.t), Y(bestS.ms), 3.5, 0, Math.PI * 2); ctx.fill();
+      }
+      tip.append(el("div", { class: "row" }, el("i", { class: "key", style: `background:${colorFor(m.host)}` }), el("b", { class: "num", text: bestS.ms == null ? "verloren" : fmt(bestS.ms) + " ms" }), el("span", { class: "n", text: m.host })));
+    }
+    if (any) {
+      tip.hidden = false;
+      const tw = tip.offsetWidth;
+      tip.style.left = (hoverX + 14 + tw > W ? hoverX - tw - 14 : hoverX + 14) + "px";
+      tip.style.top = T + 6 + "px";
+    } else tip.hidden = true;
+  } else tip.hidden = true;
+}
+$("chartBox").addEventListener("pointermove", (e) => { const r = cv.getBoundingClientRect(); hoverX = e.clientX - r.left; });
+$("chartBox").addEventListener("pointerleave", () => { hoverX = null; });
+function loop() { draw(); requestAnimationFrame(loop); }
+setInterval(() => { renderMons(); renderTunnels(); }, 1000);
+
+// ---------- Live-Steuerung ----------
+async function loadRelays() {
+  try {
+    relays = await api("/api/relays");
+    relayBy.clear(); for (const r of relays) relayBy.set(r.host, r);
+    const dl = $("relayList"); dl.replaceChildren();
+    for (const r of relays) dl.append(el("option", { value: r.host, label: `${r.city}, ${regionName(r.cc)}` }));
+    renderCountryPicker();
+  } catch (e) { toast(e.message); }
+}
+async function startLive(host) {
+  try { await api("/api/live/start", { host }); toast(host + " wird jetzt live beobachtet"); }
+  catch (e) { toast(e.message); }
+}
+async function stopLive(host) { try { await api("/api/live/stop", { host }); } catch (e) { toast(e.message); } }
+$("btnAdd").onclick = () => {
+  const q = $("addInput").value.trim().toLowerCase(); if (!q) return;
+  let r = relayBy.get(q) || relays.find(x => x.host.startsWith(q)) || relays.find(x => (x.city || "").toLowerCase().startsWith(q));
+  if (!r) { toast("Kein Server gefunden für „" + q + "“"); return; }
+  $("addInput").value = ""; startLive(r.host);
+};
+$("addInput").addEventListener("keydown", (e) => { if (e.key === "Enter") $("btnAdd").click(); });
+for (const b of $("rangeSeg").querySelectorAll("button")) b.onclick = () => {
+  rangeSec = +b.dataset.s; for (const x of $("rangeSeg").querySelectorAll("button")) x.setAttribute("aria-pressed", x === b); renderMons();
+};
+
+// ---------- Reiter ----------
+function selectTab(live) {
+  $("tabLive").setAttribute("aria-selected", live); $("tabScan").setAttribute("aria-selected", !live);
+  $("panelLive").hidden = !live; $("panelScan").hidden = live;
+}
+$("tabLive").onclick = () => selectTab(true);
+$("tabScan").onclick = () => selectTab(false);
+
+// ---------- Rangliste ----------
+let pickCC = null;
+function renderCountryPicker() {
+  if (!pickCC) pickCC = (S && S.countries && S.countries.length) ? [...S.countries] : ["de", "se"];
+  const chips = $("ccChips"); chips.replaceChildren();
+  for (const cc of pickCC) chips.append(el("span", { class: "chip" }, regionName(cc), el("button", { title: "Entfernen", "aria-label": regionName(cc) + " entfernen", onclick: () => { pickCC = pickCC.filter(x => x !== cc); renderCountryPicker(); } }, "×")));
+  const sel = $("ccAdd"); sel.replaceChildren(el("option", { value: "", text: "+ Land" }));
+  const ccs = [...new Set(relays.map(r => r.cc))].filter(c => !pickCC.includes(c)).sort((a, b) => regionName(a).localeCompare(regionName(b), "de"));
+  for (const c of ccs) sel.append(el("option", { value: c, text: `${regionName(c)} (${relays.filter(r => r.cc === c).length})` }));
+  if (S && S.scan_pings) $("pings").value = String(S.scan_pings);
+}
+$("ccAdd").onchange = (e) => { const v = e.target.value; if (v) { pickCC.push(v); renderCountryPicker(); } };
+$("btnScan").onclick = async () => {
+  if (scan && scan.running) { try { await api("/api/scan/stop", {}); } catch (e) { toast(e.message); } return; }
+  if (!pickCC.length) { toast("Mindestens ein Land wählen"); return; }
+  try { scan = await api("/api/scan/start", { countries: pickCC, pings: +$("pings").value }); scanCC = "all"; renderScan(); }
+  catch (e) { toast(e.message); }
+};
+
+function renderScan() {
+  if (!scan) return;
+  const running = scan.running;
+  $("btnScan").textContent = running ? "Abbrechen" : "Messen";
+  $("btnScan").className = running ? "btn" : "btn primary";
+  $("progress").hidden = !running;
+  $("progress").firstElementChild.style.width = scan.total ? (scan.done / scan.total * 100) + "%" : "0";
+  if (scan.error && !running && scan.error !== "Abgebrochen") toast(scan.error);
+  const res = scan.results || [];
+  $("scanEmpty").hidden = res.length > 0;
+  if (!res.length && running) { $("scanEmpty").hidden = false; $("scanEmpty").textContent = `Messe ${scan.total} Server …`; }
+  // Länder-Reiter
+  const ccs = [...new Set(res.map(r => r.cc))];
+  const ct = $("ctabs"); ct.replaceChildren();
+  if (ccs.length > 1) {
+    const mk = (cc, label) => el("button", { class: "btn small" + (scanCC === cc ? " primary" : ""), onclick: () => { scanCC = cc; renderScan(); } }, label);
+    ct.append(mk("all", "Alle"));
+    for (const c of ccs) ct.append(mk(c, regionName(c)));
+  } else scanCC = "all";
+  // Platz je Land (nach Verlust, dann Mittel – vom Server so geliefert, beim Laufen hier nachsortiert)
+  const ordered = [...res].sort((a, b) => ((a.recv === 0) - (b.recv === 0)) || (a.loss - b.loss) || (a.avg - b.avg));
+  const rankIn = new Map(), seenCC = new Map(), bestHosts = new Set();
+  ordered.forEach((r, i) => { const k = scanCC === "all" ? "all" : r.cc; const n = (seenCC.get(r.cc) || 0) + 1; seenCC.set(r.cc, n); if (n === 1 && r.recv > 0) bestHosts.add(r.host); rankIn.set(r.host, scanCC === "all" ? i + 1 : n); });
+  let rows = ordered.filter(r => scanCC === "all" || r.cc === scanCC);
+  if (scanCC !== "all") rows.forEach((r, i) => rankIn.set(r.host, i + 1));
+  const val = (r, k) => k === "rank" ? rankIn.get(r.host) : k === "owned" ? (r.owned ? 0 : 1) : r[k];
+  rows.sort((a, b) => { const x = val(a, sortKey), y = val(b, sortKey); return (typeof x === "string" ? x.localeCompare(y) : (x - y)) * sortDir; });
+  for (const th of document.querySelectorAll("#scanTable th[data-k]")) {
+    if (th.dataset.k === sortKey) th.setAttribute("aria-sort", sortDir === 1 ? "ascending" : "descending"); else th.removeAttribute("aria-sort");
+  }
+  const maxAvg = Math.max(1, ...rows.filter(r => r.recv).map(r => r.avg));
+  const live = new Set(((S && S.monitors) || []).map(m => m.host));
+  const tb = $("scanBody"); tb.replaceChildren();
+  for (const r of rows) {
+    const dead = r.recv === 0;
+    const owned = r.owned == null ? "" : (r.owned ? "eigener" : "gemietet");
+    tb.append(el("tr", { class: r.active ? "active" : "" },
+      el("td", { class: "r num muted", text: String(rankIn.get(r.host)) }),
+      el("td", {}, el("span", { text: r.host }), " ", r.active ? el("span", { class: "badge", text: "Tunnel" }) : null, " ", bestHosts.has(r.host) ? el("span", { class: "badge best", text: "Bester " + r.cc.toUpperCase() }) : null),
+      el("td", { text: r.city }),
+      el("td", { class: "r num" }, dead ? el("span", { class: "muted", text: "keine Antwort" }) : el("div", { class: "barcell" }, el("div", { class: "bar", style: `width:${Math.max(4, r.avg / maxAvg * 70)}px` }), el("span", { text: fmt(r.avg) }))),
+      el("td", { class: "r num", text: dead ? "–" : fmt(r.jitter) }),
+      el("td", { class: "r num", text: dead ? "–" : fmt(r.min) }),
+      el("td", { class: "r num", text: dead ? "–" : fmt(r.max) }),
+      el("td", { class: "r num" }, r.loss >= 5 ? el("span", { class: "warn-loss", title: "Deutlicher Paketverlust" }, "▲ " + r.loss + " %") : el("span", { text: r.loss + " %" })),
+      el("td", { class: "muted", text: owned + (r.provider ? " · " + r.provider : "") }),
+      el("td", { class: "r" }, live.has(r.host) ? el("span", { class: "muted", text: "live" }) : el("button", { class: "btn small", onclick: () => startLive(r.host) }, "Live"))));
+  }
+  renderTunnels();
+}
+for (const th of document.querySelectorAll("#scanTable th[data-k]")) th.onclick = () => {
+  if (sortKey === th.dataset.k) sortDir = -sortDir; else { sortKey = th.dataset.k; sortDir = 1; }
+  renderScan();
+};
+
+// ---------- Verbinden, Einstellungen ----------
+$("connectForm").onsubmit = async (e) => {
+  e.preventDefault();
+  $("cErr").hidden = true; $("cBtn").disabled = true; $("cBtn").textContent = "Verbinde …";
+  try {
+    await api("/api/connect", { host: $("cHost").value.trim(), port: +$("cPort").value || 22, user: $("cUser").value.trim() || "root", password: $("cPass").value });
+    $("cPass").value = ""; $("connectDlg").hidden = true; toast("Verbunden – Schlüssel auf dem Router hinterlegt");
+  } catch (err) { $("cErr").textContent = err.message; $("cErr").hidden = false; }
+  finally { $("cBtn").disabled = false; $("cBtn").textContent = "Verbinden"; }
+};
+$("btnSettings").onclick = () => { renderSettings(); $("settingsDlg").hidden = false; };
+$("btnCloseSettings").onclick = () => $("settingsDlg").hidden = true;
+$("settingsDlg").onclick = (e) => { if (e.target === $("settingsDlg")) $("settingsDlg").hidden = true; };
+$("btnForget").onclick = async () => {
+  try { await api("/api/forget", {}); $("settingsDlg").hidden = true; series.clear(); toast("Router-Zugang zurückgesetzt"); } catch (e) { toast(e.message); }
+};
+$("csvToggle").onchange = (e) => api("/api/settings", { log_csv: e.target.checked }).catch(err => toast(err.message));
+$("btnOpenData").onclick = () => api("/api/open-data", {}).catch(err => toast(err.message));
+$("btnRefreshRelays").onclick = async () => { try { await api("/api/relays/refresh", {}); await loadRelays(); toast("Serverliste aktualisiert"); } catch (e) { toast(e.message); } };
+$("btnQuit").onclick = async () => {
+  try { await api("/api/quit", {}); } catch {}
+  document.body.replaceChildren(el("div", { class: "empty", style: "padding-top:30vh" }, el("h2", { text: "RelayPing beendet" }), el("p", { text: "Du kannst diesen Tab schließen." })));
+};
+document.addEventListener("keydown", (e) => { if (e.key === "Escape") $("settingsDlg").hidden = true; });
+
+// ---------- Start ----------
+(async () => {
+  try { scan = await api("/api/scan"); if (!scan.results || !scan.results.length) scan = scan.running ? scan : null; } catch {}
+  connectEvents();
+  loop();
+})();
+</script>
+</body>
+</html>
