@@ -4,7 +4,7 @@
 
 RelayPing ist ein kleines, portables Windows-Tool: eine einzige `.exe`, keine Installation. Es zeigt dir in Echtzeit, wie schnell die Mullvad-Server von deinem Anschluss aus erreichbar sind, hält eine laufend aktualisierte Bestenliste ganzer Länder und stellt einen Tunnel **auf Knopfdruck** auf einen besseren Server um.
 
-> **Vorabversion (Beta).** Die Messungen laufen auf einem echten Flint 4 (GL-BE14000). Der Server-Wechsel über die GL.iNet-Schnittstelle ist bisher nur gegen einen nachgebauten Router getestet. Rückmeldungen über die Issues sind willkommen.
+> **Vorabversion (Beta).** Messungen und Server-Wechsel laufen auf einem echten Flint 4 (GL-BE14000, Firmware 4.9.2). Tagesbericht, Ländervergleich und Sperr-Check sind bisher nur gegen einen nachgebauten Router getestet. Rückmeldungen über die Issues sind willkommen.
 >
 > **Inoffizielles Community-Tool.** RelayPing steht in keiner Verbindung zu Mullvad VPN AB oder GL.iNet. „Mullvad“ und „GL.iNet“ sind Marken ihrer jeweiligen Inhaber.
 
@@ -24,6 +24,10 @@ Wenn dein VPN auf dem Router läuft, geht jeder Ping vom PC erst durch den aktiv
 - **Live-Graphen:** bis zu 8 Server gleichzeitig, Zeitfenster 1, 5 oder 15 Minuten, lineare oder logarithmische Achse (Automatik bei Ausreißern), Favoriten für Server-Gruppen.
 - **Rangliste:** misst alle Server der gewählten Länder gründlich (Standard: 20 Pings pro Server), auf Wunsch automatisch im Hintergrund. Aus Ranglisten und Bestenliste entsteht der **Stabilitätswert**: Anteil der Messungen der letzten 7 Tage, in denen ein Server ohne Verlust höchstens 3 ms hinter dem besten lag.
 - **Router-Zustand:** CPU, RAM, Temperatur, Laufzeit.
+- **Tagesbericht:** RelayPing fasst die letzten 24 Stunden je Tunnel zusammen: aktiver Server, Qualität (sehr gut bis schlecht), Ø-Ping, 95-%-Wert, Jitter, Paketverlust, bester Server im Land, Wechsel und Warnungen. Der Bericht liegt alle 5 Minuten als `relayping-bericht.txt` und `.json` im Datenordner, etwa für eine tägliche Mail.
+- **Länder-Tab:**
+  - *Ländervergleich:* misst die europäischen Länder außer Deutschland und empfiehlt das schnellste Land ohne bekannte Altersprüfungs-Pflicht für Erwachsenen-Seiten (Rechtslage im Programm hinterlegt, mit Stand). Ein Tunnel lässt sich nach ausdrücklicher Bestätigung in ein anderes Land umstellen, wenn dafür Profile auf dem Router existieren.
+  - *Sperr-Check:* prüft die Domainliste eines Tunnels oder eigene Domains: Sind sie in Deutschland per DNS gesperrt (Abfrage beim DNS-Server des Anschlusses, nur der Domainname)? Sind sie über den Tunnel erreichbar, gesperrt (HTTP 451) oder hinter einer Altersprüfung?
 - **Taskleiste:** RelayPing läuft unsichtbar im Infobereich, auf Wunsch mit Windows-Start. Ein zweiter Start öffnet nur die Oberfläche.
 - **Deutsch und Englisch**, umschaltbar in den Einstellungen.
 - **Verlauf als CSV:** Minutenwerte, Ranglisten, Wechsel und Speedtests im deutschen Excel-Format (Semikolon, Dezimalkomma).
@@ -62,6 +66,9 @@ RelayPing ist portabel und legt alles in den eigenen Ordner. Ist dieser schreibg
 | `relayping-server.json` | Mullvad-Serverliste, wird höchstens einmal am Tag neu geladen |
 | `relayping-verlauf.json` | Messwerte der letzten 7 Tage für den Stabilitätswert |
 | `relayping-speed.json` | letztes Speedtest-Ergebnis je Server |
+| `relayping-tag.json` | Minutenwerte und Tunnel-Verlauf der letzten 24 Stunden |
+| `relayping-bericht.txt` / `.json` | Tagesbericht, alle 5 Minuten neu |
+| `relayping-laender.json` | Ergebnisse des Ländervergleichs |
 | `relayping.log` | Programmprotokoll |
 | `verlauf/` | CSV-Verlauf (`live-minutenwerte.csv`, `ranglisten.csv`, `wechsel.csv`, `speedtest.csv`) |
 
@@ -81,6 +88,8 @@ RelayPing ist portabel und legt alles in den eigenen Ordner. Ist dieser schreibg
 - Ein Ping misst Strecke und Paketverlust, **nicht die Auslastung** eines Servers. Mullvad veröffentlicht keine Auslastung. Die angezeigte Portgeschwindigkeit (10 oder 20 Gbit/s) ist der Anschluss des Servers, nicht deine Geschwindigkeit.
 - Der Speedtest misst nur den Server, über den ein Tunnel gerade läuft. Um einen anderen zu testen, erst wechseln.
 - Server-Wechsel geht nur innerhalb des Landes, das der Tunnel schon nutzt, und nur auf Server, für die im GL.iNet-Panel ein Profil existiert (bei Mullvad über die Kontoanmeldung normalerweise alle). Ob die lokale GL.iNet-Schnittstelle auf deiner Firmware erreichbar ist, prüft RelayPing beim Verbinden und zeigt es unter „Server-Wechsel“ an.
+- Die hinterlegte Rechtslage zu Altersprüfungen ist eine Momentaufnahme ohne Gewähr. Sie ändert sich gerade in vielen Ländern.
+- Streaming-Dienste wie Netflix sperren Mullvad-Adressen. Länderkataloge lassen sich damit nicht freischalten.
 - Die Serverliste kommt aus der öffentlichen Mullvad-API (`api.mullvad.net`).
 
 ## Selbst bauen
@@ -102,4 +111,4 @@ MIT, siehe [LICENSE](LICENSE). Enthaltene Fremdbibliotheken: siehe [THIRD_PARTY_
 
 ### English summary
 
-RelayPing is a portable Windows tool (single `.exe`) that shows **live latency, jitter and packet loss to Mullvad WireGuard servers, measured from your GL.iNet router** over the WAN link, bypassing the tunnel. That matters because pinging from a PC behind a VPN router would only measure the path through the active tunnel. It detects the router's active WireGuard tunnels, keeps a live leaderboard of whole countries with a 7-day stability score, plots up to 8 servers live (linear or log axis), warns when a tunnel degrades, runs a speed test through the tunnel and **switches a tunnel to a better server at the push of a button** (same country only, with automatic rollback if the new server does not handshake within 35 s). It runs in the Windows tray and can start with Windows. On first start it asks once for the router's admin password, installs its own SSH key and never stores the password. UI in German and English. **Beta – measuring is tested on a real Flint 4; switching only against a simulated router so far.** Unofficial, not affiliated with Mullvad VPN AB or GL.iNet. MIT licensed.
+RelayPing is a portable Windows tool (single `.exe`) that shows **live latency, jitter and packet loss to Mullvad WireGuard servers, measured from your GL.iNet router** over the WAN link, bypassing the tunnel. That matters because pinging from a PC behind a VPN router would only measure the path through the active tunnel. It detects the router's active WireGuard tunnels, keeps a live leaderboard of whole countries with a 7-day stability score, plots up to 8 servers live (linear or log axis), warns when a tunnel degrades, runs a speed test through the tunnel and **switches a tunnel to a better server at the push of a button** (same country only, with automatic rollback if the new server does not handshake within 35 s). It writes a 24-hour daily report (per tunnel: active server, quality grade, ping, jitter, loss, switches, alerts), compares European countries for a geo-unblocking tunnel (fastest country without a known adult-site age-check law) and checks domains for German DNS blocks and reachability through the tunnel. It runs in the Windows tray and can start with Windows. On first start it asks once for the router's admin password, installs its own SSH key and never stores the password. UI in German and English. **Beta – measuring and switching are tested on a real Flint 4; daily report, country comparison and block check only against a simulated router so far.** Unofficial, not affiliated with Mullvad VPN AB or GL.iNet. MIT licensed.

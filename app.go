@@ -21,6 +21,8 @@ type App struct {
 	alerts   *Alerts
 	switcher *Switcher
 	speed    *Speed
+	day      *Day
+	geo      *Geo
 	csv      *CSVLog
 	tray     Tray
 	log      *Logger
@@ -52,6 +54,8 @@ func newApp(dir string) *App {
 	a.alerts = newAlerts(a)
 	a.switcher = &Switcher{app: a}
 	a.speed = newSpeed(a, a.store.File("relayping-speed.json"))
+	a.day = newDay(a, a.store.File("relayping-tag.json"))
+	a.geo = newGeo(a, a.store.File("relayping-laender.json"))
 	a.csv = &CSVLog{app: a}
 	a.tray = noTray{}
 	return a
@@ -358,6 +362,7 @@ func (a *App) onConnected() {
 			a.router.Refresh()
 			// neue Tunnel-Server automatisch live beobachten
 			_, _, inf := a.router.State()
+			a.day.Tunnels(inf.Tunnels, time.Now())
 			for _, t := range inf.Tunnels {
 				if t.Host != "" && a.monitor(t.Host) == nil {
 					a.startMonitor(t.Host, false)

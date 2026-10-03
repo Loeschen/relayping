@@ -150,5 +150,6 @@ func (al *Alerts) check() {
 		al.mu.Unlock()
 		a.broadcast("alerts", al.List())
 		a.notify(a.tr("RelayPing: Tunnel langsam", "RelayPing: tunnel degraded"), text)
+		a.day.Event("warnung", text)
 	}
 }

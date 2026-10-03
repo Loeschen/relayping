@@ -18,7 +18,7 @@ import (
 //go:embed ui
 var uiFS embed.FS
 
-const version = "0.10.0-beta"
+const version = "0.11.0-beta"
 
 // runInfo erlaubt einer zweiten gestarteten Instanz, die laufende zu öffnen.
 type runInfo struct {
@@ -93,6 +93,7 @@ func main() {
 		}
 	}()
 	go app.board.Run()
+	go app.day.Run()
 	go app.alerts.Run()
 	go app.scanner.AutoRun()
 

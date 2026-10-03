@@ -58,6 +58,45 @@ func (a *App) routes() http.Handler {
 	api("/api/alerts", func(w http.ResponseWriter, r *http.Request) { writeJSON(w, a.alerts.List()) })
 	api("/api/switch", func(w http.ResponseWriter, r *http.Request) { writeJSON(w, a.switcher.Status()) })
 	api("/api/speed", func(w http.ResponseWriter, r *http.Request) { writeJSON(w, a.speed.State()) })
+	api("/api/geo", func(w http.ResponseWriter, r *http.Request) { writeJSON(w, a.geo.State()) })
+	api("/api/geo/compare", func(w http.ResponseWriter, r *http.Request) {
+		if err := a.geo.Compare(); err != nil {
+			writeErr(w, err.Error())
+			return
+		}
+		writeJSON(w, a.geo.State())
+	})
+	api("/api/blockcheck/list", func(w http.ResponseWriter, r *http.Request) {
+		t, list, err := a.geo.DomainList(0)
+		if err != nil {
+			writeErr(w, err.Error())
+			return
+		}
+		writeJSON(w, map[string]any{"tunnel_id": t.TunnelID, "name": t.Name, "iface": t.Iface, "host": t.Host, "domains": list})
+	})
+	api("/api/blockcheck", func(w http.ResponseWriter, r *http.Request) {
+		var req struct {
+			Domains []string `json:"domains"`
+			Iface   string   `json:"iface"`
+		}
+		if !a.readJSON(w, r, &req) {
+			return
+		}
+		var list []string
+		if _, l, err := a.geo.DomainList(0); err == nil {
+			list = l
+		}
+		res, dns, err := a.geo.BlockCheck(req.Domains, req.Iface, list)
+		if err != nil {
+			writeErr(w, err.Error())
+			return
+		}
+		writeJSON(w, map[string]any{"results": res, "dns": dns})
+	})
+	api("/api/report", func(w http.ResponseWriter, r *http.Request) {
+		a.day.writeReport()
+		writeJSON(w, a.day.Build(time.Now()))
+	})
 	api("/api/speed/start", func(w http.ResponseWriter, r *http.Request) {
 		var req struct {
 			Iface string `json:"iface"`
@@ -88,7 +127,7 @@ func (a *App) routes() http.Handler {
 		for _, ev := range []struct {
 			name string
 			v    any
-		}{{"state", a.State()}, {"backfill", a.backfill()}, {"board", a.board.State()}, {"alerts", a.alerts.List()}, {"switch", a.switcher.Status()}, {"speed", a.speed.State()}} {
+		}{{"state", a.State()}, {"backfill", a.backfill()}, {"board", a.board.State()}, {"alerts", a.alerts.List()}, {"switch", a.switcher.Status()}, {"speed", a.speed.State()}, {"geo", a.geo.State()}} {
 			b, _ := json.Marshal(ev.v)
 			fmt.Fprintf(w, "event: %s\ndata: %s\n\n", ev.name, b)
 		}
@@ -226,13 +265,14 @@ func (a *App) routes() http.Handler {
 
 	api("/api/switch/start", func(w http.ResponseWriter, r *http.Request) {
 		var req struct {
-			TunnelID int    `json:"tunnel_id"`
-			Host     string `json:"host"`
+			TunnelID     int    `json:"tunnel_id"`
+			Host         string `json:"host"`
+			AllowCountry bool   `json:"allow_country"`
 		}
 		if !a.readJSON(w, r, &req) {
 			return
 		}
-		if err := a.switcher.Start(req.TunnelID, req.Host); err != nil {
+		if err := a.switcher.Start(req.TunnelID, req.Host, req.AllowCountry); err != nil {
 			writeErr(w, err.Error())
 			return
 		}

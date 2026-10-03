@@ -156,6 +156,7 @@ func (m *Monitor) flushLocked() {
 		return
 	}
 	m.app.csv.Live(b.start, m.relay, b)
+	m.app.day.AddMinute(m.relay.Host, b)
 }
 
 func (m *Monitor) Run() {

@@ -140,6 +140,7 @@ func (s *Scanner) run(script string, byIP map[string]Relay, cancel chan struct{}
 				snap = append(snap, HistEntry{T: now, CC: r.CountryCode, Host: r.Host, Avg: r.Avg, Loss: float64(r.Loss)})
 			}
 			s.app.hist.Add(snap)
+			s.app.geo.Ingest(st.Results, st.Finished)
 		}
 		s.app.broadcast("scan", st)
 	}

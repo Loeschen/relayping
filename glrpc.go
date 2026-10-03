@@ -337,7 +337,7 @@ func (s *Switcher) set(fn func(st *SwitchStatus)) {
 }
 
 // Start prüft die Anfrage und wechselt im Hintergrund.
-func (s *Switcher) Start(tunnelID int, host string) error {
+func (s *Switcher) Start(tunnelID int, host string, allowCountry bool) error {
 	a := s.app
 	r := a.router
 	r.RefreshGL(false)
@@ -362,7 +362,7 @@ func (s *Switcher) Start(tunnelID int, host string) error {
 		return fmt.Errorf(a.tr("Für %s gibt es auf dem Router kein Profil in der Mullvad-Gruppe dieses Tunnels", "There is no profile for %s in this tunnel's Mullvad group on the router"), target.Host)
 	}
 	cur, _ := a.relays.Host(t.Host)
-	if cur.CountryCode != "" && cur.CountryCode != target.CountryCode {
+	if !allowCountry && cur.CountryCode != "" && cur.CountryCode != target.CountryCode {
 		return fmt.Errorf(a.tr("Wechsel nur innerhalb des Landes (%s): So bleibt der Zweck des Tunnels erhalten. Länderwechsel bitte im GL.iNet-Panel.",
 			"Switching only within the same country (%s), so the tunnel keeps its purpose. Change countries in the GL.iNet panel."), strings.ToUpper(cur.CountryCode))
 	}
@@ -389,6 +389,7 @@ func (s *Switcher) run(t GLTunnel, peer GLPeer, target Relay) {
 			st.Running, st.Stage, st.Message, st.Finished = false, stage, msg, time.Now()
 		})
 		a.csv.Switch(start, t.Name, t.Host, target.Host, stage, msg, time.Since(start))
+		a.day.Event("wechsel", msg)
 		r.RefreshGL(false)
 		r.Refresh()
 		if stage == "ok" {
