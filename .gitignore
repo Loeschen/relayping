@@ -1,0 +1,10 @@
+# Persönliche Daten, die RelayPing neben der .exe ablegt – niemals einchecken
+relayping.json
+relayping.key
+relayping-server.json
+verlauf/
+*.tmp
+
+# Build-Ergebnisse
+*.exe
+/relayping
