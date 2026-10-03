@@ -171,6 +171,16 @@ tr.active td { background: var(--accent-soft); }
 .spark { display: block; }
 .actions { display: inline-flex; gap: 6px; align-items: center; }
 .handshake-idle { color: var(--muted); }
+.geo-head { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; padding: 12px 10px 6px; }
+.geo-head h3 { margin: 0; font-size: 15px; }
+.geo-note { font-size: 12.5px; color: var(--ink-2); padding: 0 10px 10px; line-height: 1.5; }
+.st { font-size: 11.5px; font-weight: 600; padding: 2px 8px; border-radius: 999px; white-space: nowrap; }
+.st.ok { background: color-mix(in srgb, var(--good) 16%, transparent); color: var(--good); }
+.st.bad { background: color-mix(in srgb, var(--critical) 14%, transparent); color: var(--critical); }
+.st.mid { background: color-mix(in srgb, var(--warning) 18%, transparent); color: var(--warning); }
+.st.na { background: var(--surface-2); color: var(--muted); }
+tr.rec td { background: color-mix(in srgb, var(--good) 8%, transparent); }
+.geo-input { flex: 1; min-width: 200px; }
 
 footer { margin-top: 28px; display: flex; flex-wrap: wrap; gap: 10px 22px; align-items: center; color: var(--muted); font-size: 12.5px; }
 .link { color: var(--ink-2); text-decoration: underline; text-underline-offset: 2px; cursor: pointer; background: none; border: 0; padding: 0; font-size: inherit; }
@@ -233,6 +243,7 @@ footer { margin-top: 28px; display: flex; flex-wrap: wrap; gap: 10px 22px; align
     <button class="tab" role="tab" data-tab="live" aria-selected="true" data-i18n="tabLive">Live</button>
     <button class="tab" role="tab" data-tab="board" aria-selected="false" data-i18n="tabBoard">Bestenliste</button>
     <button class="tab" role="tab" data-tab="scan" aria-selected="false" data-i18n="tabScan">Rangliste</button>
+    <button class="tab" role="tab" data-tab="geo" aria-selected="false" data-i18n="tabGeo">Länder</button>
   </nav>
 
   <!-- LIVE -->
@@ -340,11 +351,68 @@ footer { margin-top: 28px; display: flex; flex-wrap: wrap; gap: 10px 22px; align
     </div>
   </section>
 
+  <!-- LÄNDER -->
+  <section class="panel" id="panel-geo" hidden>
+    <div class="card" style="padding: 4px 6px 6px;">
+      <div class="geo-head">
+        <h3 data-i18n="geoTitle">Ländervergleich</h3>
+        <span class="boardinfo" id="geoInfo"></span>
+        <div class="spacer"></div>
+        <button class="btn primary" id="btnGeo" data-i18n="geoMeasure">Länder messen</button>
+      </div>
+      <p class="geo-note" data-i18n="geoText"></p>
+      <div class="progress" id="geoProgress" hidden><div></div></div>
+      <div class="table-wrap">
+        <table id="geoTable">
+          <thead><tr>
+            <th data-i18n="colCountry">Land</th>
+            <th data-i18n="colBestServer">Bester Server</th>
+            <th class="r" data-i18n="colPing">Ping</th>
+            <th class="r" data-i18n="colLoss">Verlust</th>
+            <th class="r" data-i18n="colProfiles">Profile</th>
+            <th data-i18n="colAdult">Erwachsenen-Seiten</th>
+            <th></th>
+          </tr></thead>
+          <tbody id="geoBody"></tbody>
+        </table>
+      </div>
+      <p class="geo-note" id="geoFoot"></p>
+    </div>
+
+    <div class="card" style="padding: 4px 6px 6px; margin-top: 16px;">
+      <div class="geo-head">
+        <h3 data-i18n="bcTitle">Sperr-Check</h3>
+        <span class="boardinfo" id="bcInfo"></span>
+      </div>
+      <p class="geo-note" data-i18n="bcText"></p>
+      <div class="geo-head" style="padding-top:0">
+        <button class="btn primary" id="btnBcList" data-i18n="bcList">Domainliste prüfen</button>
+        <input class="geo-input" id="bcInput" data-i18n-ph="bcPh" placeholder="weitere Domains, z. B. beispiel.de, seite.com">
+        <button class="btn" id="btnBcCustom" data-i18n="bcCheck">Prüfen</button>
+      </div>
+      <div class="progress" id="bcProgress" hidden><div style="width:100%"></div></div>
+      <div class="table-wrap">
+        <table id="bcTable" hidden>
+          <thead><tr>
+            <th data-i18n="colDomain">Domain</th>
+            <th data-i18n="colDE">In Deutschland</th>
+            <th data-i18n="colVia">Über den Tunnel</th>
+            <th data-i18n="colInList">In der Liste</th>
+            <th data-i18n="colAdvice">Hinweis</th>
+          </tr></thead>
+          <tbody id="bcBody"></tbody>
+        </table>
+      </div>
+      <p class="geo-note" id="bcFoot"></p>
+    </div>
+  </section>
+
   <footer>
     <span id="relayInfo"></span>
     <button class="link" id="btnRefreshRelays" data-i18n="refresh">Aktualisieren</button>
     <span class="spacer"></span>
     <label class="toggle"><input type="checkbox" id="csvToggle"> <span data-i18n="csv">Verlauf als CSV speichern</span></label>
+    <button class="link" id="btnReport" data-i18n="report">Tagesbericht</button>
     <button class="link" id="btnOpenData" data-i18n="openFolder">Ordner öffnen</button>
     <span class="disclaimer" data-i18n="disclaimer"></span>
   </footer>
@@ -376,6 +444,16 @@ footer { margin-top: 28px; display: flex; flex-wrap: wrap; gap: 10px 22px; align
     <p class="muted" id="swSub" style="margin-top:2px"></p>
     <p data-i18n="swText"></p>
     <div class="actions"><button class="btn" id="swCancel" data-i18n="cancel"></button><button class="btn primary" id="swGo" data-i18n="swGo"></button></div>
+  </div>
+</div>
+
+<!-- Tagesbericht -->
+<div class="overlay" id="repDlg" hidden>
+  <div class="dialog" style="max-width:760px">
+    <h2 data-i18n="report"></h2>
+    <p class="muted" data-i18n="reportD"></p>
+    <pre id="repText" style="white-space:pre-wrap;font-size:12.5px;line-height:1.5;max-height:60vh;overflow:auto;background:var(--surface-2);padding:12px;border-radius:10px"></pre>
+    <div class="actions"><button class="btn primary" id="repClose" data-i18n="close"></button></div>
   </div>
 </div>
 
@@ -458,6 +536,19 @@ const I18N = {
     quoted: "„{n}“", idle: "Leerlauf", hsIdleT: "Über diesen Tunnel läuft gerade kaum Verkehr – ein älterer Handshake ist dann normal.", hsBadT: "Es wird gesendet, aber seit über 3 Minuten kam kein Handshake zustande.",
     alertLossT: "Tunnel {t}: {h} verliert {v} % der Pakete.", alertSlowT: "Tunnel {t}: {h} braucht {v} ms, {b} nur {bv} ms.", alertSuggest: "Vorschlag: auf {b} wechseln.",
     notOnBoard: "{cc} ist nicht in der Bestenliste.", addToBoard: "Aufnehmen", srcCache: "Zwischenspeicher", srcApi: "Mullvad-API",
+    tabGeo: "Länder", geoTitle: "Ländervergleich", geoMeasure: "Länder messen", geoRunning: "Messung läuft … {d} von {n} Servern",
+    geoText: "Misst die europäischen Länder außer Deutschland (10 Pings je Server, am Tunnel vorbei) und empfiehlt das schnellste Land ohne bekannte Altersprüfungs-Pflicht für Erwachsenen-Seiten – passend für deinen Tunnel mit der Domainliste.",
+    colCountry: "Land", colBestServer: "Bester Server", colPing: "Ping", colProfiles: "Profile", colAdult: "Erwachsenen-Seiten",
+    stFrei: "frei", stPflicht: "Altersprüfung", stTeilweise: "teilweise", stGeplant: "geplant", stUnbekannt: "unbekannt", recommend: "Empfehlung",
+    notMeasured: "noch nicht gemessen", useFor: "Für {n} wählen", noProfiles: "Im GL.iNet-Panel unter VPN → VPN Client → Mullvad dieses Land hinzufügen, dann kann RelayPing dorthin wechseln.",
+    geoFoot: "Rechtslage Stand {d}, ohne Gewähr – sie ändert sich gerade in vielen Ländern. Streaming: Netflix sperrt alle Mullvad-Adressen, Länderkataloge lassen sich mit Mullvad nicht freischalten.",
+    geoUpdated: "gemessen {t}", geoSwitchNote: "Achtung: Damit wechselt der Tunnel das Land.",
+    bcTitle: "Sperr-Check", bcText: "Prüft, ob Domains in Deutschland per DNS gesperrt sind und ob sie über deinen Tunnel erreichbar sind. Für „In Deutschland“ fragt der Router den DNS-Server deines Anschlusses (FRITZ!Box bzw. Telekom) nur nach dem Domainnamen. Aufgerufen werden die Seiten ausschließlich über den Tunnel.",
+    bcList: "Domainliste prüfen", bcPh: "weitere Domains, z. B. beispiel.de, seite.com", bcCheck: "Prüfen", bcRunning: "Prüfe {n} Domains …",
+    colDomain: "Domain", colDE: "In Deutschland", colVia: "Über den Tunnel", colInList: "In der Liste", colAdvice: "Hinweis",
+    deFrei: "nicht gesperrt", deGesperrt: "DNS-Sperre", deUnbekannt: "unklar", vErreichbar: "erreichbar", vGesperrt: "gesperrt (451)", vAlter: "Altersprüfung", vAbgelehnt: "abgelehnt (403)", vFehler: "keine Antwort",
+    yes: "ja", no: "nein", bcListInfo: "Tunnel {n}: {k} Domains über {h}", bcFoot: "DNS geprüft über {d}. Eine DNS-Sperre betrifft nur Geräte, die den DNS deines Anschlusses nutzen – über Mullvad (AdGuard → 10.64.0.1) wirkt sie bei dir ohnehin nicht. Für Sperren im Land des Servers zählt die Spalte „Über den Tunnel“.",
+    report: "Tagesbericht", reportD: "Die letzten 24 Stunden. RelayPing legt den Bericht alle 5 Minuten als relayping-bericht.txt im Datenordner ab.",
     speedBtn: "Speedtest", speedRunT: "Speedtest durch den Tunnel …", speedRunW: "Vergleich: Leitung ohne VPN …", speedRes: "↓ ca. {m} Mbit/s über den Tunnel",
     speedWan: "ohne VPN {m} Mbit/s", speedAgo: "gemessen {t}", speedHelp: "Der Router lädt {s} s lang mit 4 Verbindungen eine Testdatei von Cloudflare – durch den Tunnel und danach zum Vergleich ohne VPN. Verbraucht bei Gigabit bis zu ca. 2,5 GB. Ergebnis ist ein Richtwert: Die Router-CPU begrenzt mit.",
     speedBusy: "Speedtest läuft", speedFail: "Speedtest fehlgeschlagen: {e}", colPort: "Port", portT: "Anschluss des Servers laut Mullvad; darunter dein letzter Speedtest über diesen Server", tested: "getestet"
@@ -510,6 +601,19 @@ const I18N = {
     quoted: "“{n}”", idle: "idle", hsIdleT: "Hardly any traffic is using this tunnel right now – an older handshake is normal then.", hsBadT: "Traffic is being sent, but no handshake for more than 3 minutes.",
     alertLossT: "Tunnel {t}: {h} is losing {v}% of packets.", alertSlowT: "Tunnel {t}: {h} takes {v} ms, {b} only {bv} ms.", alertSuggest: "Suggestion: switch to {b}.",
     notOnBoard: "{cc} is not on the leaderboard.", addToBoard: "Add", srcCache: "cache", srcApi: "Mullvad API",
+    tabGeo: "Countries", geoTitle: "Country comparison", geoMeasure: "Measure countries", geoRunning: "Measuring … {d} of {n} servers",
+    geoText: "Measures European countries except Germany (10 pings per server, bypassing the tunnel) and recommends the fastest country without a known age-check requirement for adult sites – suited to your tunnel with the domain list.",
+    colCountry: "Country", colBestServer: "Best server", colPing: "Ping", colProfiles: "Profiles", colAdult: "Adult sites",
+    stFrei: "open", stPflicht: "age check", stTeilweise: "partial", stGeplant: "planned", stUnbekannt: "unknown", recommend: "Recommended",
+    notMeasured: "not measured yet", useFor: "Use for {n}", noProfiles: "Add this country in the GL.iNet panel under VPN → VPN Client → Mullvad, then RelayPing can switch to it.",
+    geoFoot: "Legal status as of {d}, no guarantee – it is changing in many countries. Streaming: Netflix blocks all Mullvad addresses, so country catalogs cannot be unlocked with Mullvad.",
+    geoUpdated: "measured {t}", geoSwitchNote: "Note: the tunnel changes country.",
+    bcTitle: "Block check", bcText: "Checks whether domains are DNS-blocked in Germany and whether they are reachable through your tunnel. For “In Germany” the router asks your line's DNS server (FRITZ!Box or Telekom) for the domain name only. The sites themselves are only requested through the tunnel.",
+    bcList: "Check domain list", bcPh: "more domains, e.g. example.de, site.com", bcCheck: "Check", bcRunning: "Checking {n} domains …",
+    colDomain: "Domain", colDE: "In Germany", colVia: "Through the tunnel", colInList: "On the list", colAdvice: "Note",
+    deFrei: "not blocked", deGesperrt: "DNS block", deUnbekannt: "unclear", vErreichbar: "reachable", vGesperrt: "blocked (451)", vAlter: "age check", vAbgelehnt: "refused (403)", vFehler: "no answer",
+    yes: "yes", no: "no", bcListInfo: "Tunnel {n}: {k} domains via {h}", bcFoot: "DNS checked via {d}. A DNS block only affects devices using your line's DNS – through Mullvad (AdGuard → 10.64.0.1) it doesn't apply to you anyway. For blocks in the server's country, see “Through the tunnel”.",
+    report: "Daily report", reportD: "The last 24 hours. RelayPing saves the report as relayping-bericht.txt in the data folder every 5 minutes.",
     speedBtn: "Speed test", speedRunT: "Speed test through the tunnel …", speedRunW: "Comparison: line without VPN …", speedRes: "↓ about {m} Mbit/s through the tunnel",
     speedWan: "without VPN {m} Mbit/s", speedAgo: "measured {t}", speedHelp: "The router downloads a Cloudflare test file for {s} s over 4 connections – through the tunnel, then without VPN for comparison. Uses up to about 2.5 GB on gigabit. The result is a guide value: the router CPU is a limit too.",
     speedBusy: "Speed test running", speedFail: "Speed test failed: {e}", colPort: "Port", portT: "Server uplink according to Mullvad; below it your last speed test via this server", tested: "tested"
@@ -559,7 +663,7 @@ let toastT;
 function toast(msg) { const e = $("toast"); e.textContent = msg; e.hidden = false; clearTimeout(toastT); toastT = setTimeout(() => e.hidden = true, 4500); }
 
 // ---------- Zustand ----------
-let S = null, board = null, scan = null, alerts = [], sw = null, speed = null;
+let S = null, board = null, scan = null, alerts = [], sw = null, speed = null, geo = null, domList = null;
 let relays = [];
 const relayBy = new Map();
 const series = new Map();
@@ -593,7 +697,8 @@ function connectEvents() {
     x.samples.push({ t: s.t, ms: s.ms < 0 ? null : s.ms });
     const cut = Date.now() - MAX_KEEP; while (x.samples.length && x.samples[0].t < cut) x.samples.shift();
   });
-  es.addEventListener("scan", (e) => { scan = JSON.parse(e.data); renderScan(); renderTunnels(); });
+  es.addEventListener("scan", (e) => { scan = JSON.parse(e.data); renderScan(); renderTunnels(); if (tab === "geo") renderGeo(); });
+  es.addEventListener("geo", (e) => { geo = JSON.parse(e.data); if (tab === "geo") renderGeo(); });
   es.addEventListener("board", (e) => { board = JSON.parse(e.data); renderBoard(); renderTunnels(); if (tab === "scan") renderScan(); });
   es.addEventListener("alerts", (e) => { alerts = JSON.parse(e.data) || []; renderBanners(); });
   es.addEventListener("switch", (e) => { sw = JSON.parse(e.data); renderBanners(); renderTunnels(); });
@@ -940,9 +1045,9 @@ for (const b of $("scaleSeg").querySelectorAll("button")) b.onclick = () => { sc
 for (const b of document.querySelectorAll(".tab")) b.onclick = () => {
   tab = b.dataset.tab;
   for (const x of document.querySelectorAll(".tab")) x.setAttribute("aria-selected", x === b);
-  for (const p of ["live", "board", "scan"]) $("panel-" + p).hidden = p !== tab;
+  for (const p of ["live", "board", "scan", "geo"]) $("panel-" + p).hidden = p !== tab;
   try { localStorage.setItem("rp-tab", tab); } catch {}
-  if (tab === "board") renderBoard(); else if (tab === "scan") renderScan();
+  if (tab === "board") renderBoard(); else if (tab === "scan") renderScan(); else if (tab === "geo") { renderGeo(); loadDomainList(); }
 };
 
 // ---------- Länderauswahl ----------
@@ -990,6 +1095,8 @@ function spark(vals) {
   svg.append(p); return svg;
 }
 
+// aktuell von einem Tunnel genutzt (immer der Live-Stand, nicht der Stand der Messung)
+const isTun = (host) => !!(S && S.router && (S.router.tunnels || []).some(x => x.host === host));
 // Wechsel-Knopf für eine Tabellenzeile: nur wenn ein Tunnel im selben Land existiert
 function switchBtnFor(row) {
   if (!S || !S.switch || !S.switch.available) return null;
@@ -1026,9 +1133,9 @@ function renderBoard() {
   const live = new Set((S.monitors || []).map(m => m.host));
   for (const r of sorted) {
     const dead = !(r.median > 0);
-    tb.append(el("tr", { class: r.active ? "active" : "" },
+    tb.append(el("tr", { class: isTun(r.host) ? "active" : "" },
       el("td", { class: "r num muted", text: String(rank.get(r.host)) }),
-      el("td", {}, el("span", { text: r.host }), " ", r.active ? el("span", { class: "badge", text: t("tunnelBadge") }) : null, " ", bestHosts.has(r.host) ? el("span", { class: "badge best", text: t("best") + " " + r.cc.toUpperCase() }) : null),
+      el("td", {}, el("span", { text: r.host }), " ", isTun(r.host) ? el("span", { class: "badge", text: t("tunnelBadge") }) : null, " ", bestHosts.has(r.host) ? el("span", { class: "badge best", text: t("best") + " " + r.cc.toUpperCase() }) : null),
       el("td", {}, el("div", { text: r.city }), el("div", { class: "muted", style: "font-size:11.5px", text: ownedTxt(r) })),
       el("td", { class: "r num", text: r.now < 0 ? t("lost") : fmt(r.now) }),
       el("td", { class: "r num" }, dead ? el("span", { class: "muted", text: t("noAnswer") }) : el("div", { class: "barcell" }, el("div", { class: "bar", style: `width:${Math.max(4, r.median / maxMed * 60)}px` }), el("span", { text: fmt(r.median) }))),
@@ -1079,9 +1186,9 @@ function renderScan() {
   const tb = $("scanBody"); tb.replaceChildren();
   for (const r of rows) {
     const dead = r.recv === 0;
-    tb.append(el("tr", { class: r.active ? "active" : "" },
+    tb.append(el("tr", { class: isTun(r.host) ? "active" : "" },
       el("td", { class: "r num muted", text: String(rankIn.get(r.host)) }),
-      el("td", {}, el("span", { text: r.host }), " ", r.active ? el("span", { class: "badge", text: t("tunnelBadge") }) : null, " ", bestHosts.has(r.host) ? el("span", { class: "badge best", text: t("best") + " " + r.cc.toUpperCase() }) : null),
+      el("td", {}, el("span", { text: r.host }), " ", isTun(r.host) ? el("span", { class: "badge", text: t("tunnelBadge") }) : null, " ", bestHosts.has(r.host) ? el("span", { class: "badge best", text: t("best") + " " + r.cc.toUpperCase() }) : null),
       el("td", {}, el("div", { text: r.city }), el("div", { class: "muted", style: "font-size:11.5px", text: ownedTxt(r) })),
       el("td", { class: "r num" }, dead ? el("span", { class: "muted", text: t("noAnswer") }) : el("div", { class: "barcell" }, el("div", { class: "bar", style: `width:${Math.max(4, r.avg / maxAvg * 70)}px` }), el("span", { text: fmt(r.avg) }))),
       el("td", { class: "r num", text: dead ? "–" : fmt(r.jitter) }),
@@ -1097,12 +1204,76 @@ for (const th of document.querySelectorAll("#scanTable th[data-k]")) th.onclick 
 
 // ---------- Wechsel ----------
 let swPending = null;
-function askSwitch(tn, host) {
+// ---------- Länder ----------
+const stClass = { frei: "ok", pflicht: "bad", teilweise: "mid", geplant: "mid" };
+const stLabel = (s) => t({ frei: "stFrei", pflicht: "stPflicht", teilweise: "stTeilweise", geplant: "stGeplant" }[s] || "stUnbekannt");
+function domainTunnel() {
+  if (!S || !domList) return null;
+  return (S.router.tunnels || []).find(x => x.tunnel_id === domList.tunnel_id) || null;
+}
+function renderGeo() {
+  if (!S) return;
+  const running = !!(scan && scan.running && geo && geo.comparing);
+  $("btnGeo").disabled = !!(scan && scan.running);
+  $("geoProgress").hidden = !running;
+  if (running) $("geoProgress").firstElementChild.style.width = (scan.total ? scan.done / scan.total * 100 : 0) + "%";
+  $("geoInfo").textContent = running ? t("geoRunning", { d: scan.done, n: scan.total }) : (geo && geo.updated && !geo.updated.startsWith("0001") ? t("geoUpdated", { t: whenStr(geo.updated) }) : "");
+  const tb = $("geoBody"); tb.replaceChildren();
+  if (!geo) return;
+  const tn = domainTunnel();
+  for (const r of geo.rows || []) {
+    const b = r.best;
+    const canUse = tn && tn.can_switch && S.switch && S.switch.available && b && r.profiles > 0 && tn.host !== b.host;
+    const action = !b ? null : r.profiles === 0 ? el("span", { class: "muted", title: t("noProfiles"), text: "0 " + t("colProfiles").toLowerCase() + " ⓘ" })
+      : canUse ? el("button", { class: "btn small" + (r.recommend ? " primary" : ""), disabled: !!(sw && sw.running), onclick: () => askSwitch(tn, b.host, true) }, t("useFor", { n: tn.name ? t("quoted", { n: tn.name }) : tn.iface })) : null;
+    tb.append(el("tr", { class: r.recommend ? "rec" : (tn && b && tn.host === b.host ? "active" : "") },
+      el("td", {}, el("span", { text: regionName(r.cc) }), " ", r.recommend ? el("span", { class: "badge best", text: t("recommend") }) : null),
+      el("td", {}, b ? el("div", {}, el("div", { text: b.host }), el("div", { class: "muted", style: "font-size:11.5px", text: b.city + " · " + r.servers + " Server" })) : el("span", { class: "muted", text: t("notMeasured") })),
+      el("td", { class: "r num", text: b ? fmt(b.avg) + " ms" : "–" }),
+      el("td", { class: "r num" }, b && b.loss >= 5 ? el("span", { class: "warn-loss" }, "▲ " + b.loss + " %") : el("span", { text: b ? b.loss + " %" : "–" })),
+      el("td", { class: "r num", text: String(r.profiles) }),
+      el("td", {}, el("span", { class: "st " + (stClass[r.rule.status] || "na"), title: r.rule_text, text: stLabel(r.rule.status) }), el("div", { class: "muted", style: "font-size:11.5px;margin-top:3px", text: r.rule_text })),
+      el("td", { class: "r" }, action)));
+  }
+  $("geoFoot").textContent = t("geoFoot", { d: geo.rules_as_of });
+}
+async function loadDomainList() {
+  try { domList = await fetch("/api/blockcheck/list").then(r => r.json()); } catch { domList = null; }
+  if (domList && domList.error) { $("bcInfo").textContent = domList.error; domList = null; }
+  else if (domList) $("bcInfo").textContent = t("bcListInfo", { n: t("quoted", { n: domList.name || domList.iface }), k: domList.domains.length, h: domList.host || "?" });
+  renderGeo();
+}
+async function runBlockCheck(domains) {
+  if (!domains.length) return;
+  $("bcProgress").hidden = false; $("btnBcList").disabled = $("btnBcCustom").disabled = true;
+  $("bcFoot").textContent = t("bcRunning", { n: domains.length });
+  try {
+    const r = await api("/api/blockcheck", { domains, iface: domList ? domList.iface : "" });
+    const tb = $("bcBody"); tb.replaceChildren();
+    const deL = { frei: ["ok", "deFrei"], gesperrt: ["bad", "deGesperrt"], unbekannt: ["na", "deUnbekannt"] };
+    const vL = { erreichbar: ["ok", "vErreichbar"], gesperrt: ["bad", "vGesperrt"], "altersprüfung": ["mid", "vAlter"], abgelehnt: ["mid", "vAbgelehnt"], fehler: ["na", "vFehler"] };
+    for (const x of r.results) {
+      const de = deL[x.de] || deL.unbekannt, v = vL[x.vpn];
+      tb.append(el("tr", {},
+        el("td", { text: x.domain }),
+        el("td", {}, el("span", { class: "st " + de[0], title: x.de_detail || null, text: t(de[1]) })),
+        el("td", {}, v ? el("span", { class: "st " + v[0], title: x.final || null, text: t(v[1]) }) : el("span", { class: "muted", text: "–" })),
+        el("td", { text: x.in_list ? t("yes") : t("no") }),
+        el("td", { class: "muted", style: "font-size:12.5px", text: x.advice || "" })));
+    }
+    $("bcTable").hidden = false;
+    $("bcFoot").textContent = t("bcFoot", { d: r.dns || "?" });
+  } catch (e) { toast(e.message); $("bcFoot").textContent = ""; }
+  $("bcProgress").hidden = true; $("btnBcList").disabled = $("btnBcCustom").disabled = false;
+}
+
+function askSwitch(tn, host, allowCountry) {
   if (!tn || !host) return;
-  swPending = { tunnel_id: tn.tunnel_id, host };
+  swPending = { tunnel_id: tn.tunnel_id, host, allow_country: !!allowCountry };
   const r = relayBy.get(host);
   $("swFrom").textContent = tn.host || "?"; $("swTo").textContent = host;
   $("swSub").textContent = `${t("tunnel")} ${tn.name ? t("quoted", { n: tn.name }) + " · " : ""}${tn.iface}${r ? " · " + r.city + ", " + regionName(r.cc) : ""}`;
+  if (allowCountry) $("swSub").textContent += " – " + t("geoSwitchNote");
   $("swDlg").hidden = false;
 }
 $("swCancel").onclick = () => { $("swDlg").hidden = true; swPending = null; };
@@ -1148,6 +1319,14 @@ $("btnCloseSettings").onclick = () => $("setDlg").hidden = true;
 for (const d of ["setDlg", "swDlg"]) $(d).onclick = (e) => { if (e.target === $(d)) $(d).hidden = true; };
 $("btnForget").onclick = async () => { try { await api("/api/forget", {}); $("setDlg").hidden = true; series.clear(); toast(t("accessReset")); } catch (e) { toast(e.message); } };
 $("csvToggle").onchange = (e) => setting({ log_csv: e.target.checked });
+$("btnGeo").onclick = () => api("/api/geo/compare", {}).then(r => { geo = r; renderGeo(); }).catch(e => toast(e.message));
+$("btnBcList").onclick = async () => { if (!domList) await loadDomainList(); if (domList) runBlockCheck(domList.domains); };
+$("btnBcCustom").onclick = () => runBlockCheck($("bcInput").value.split(/[\s,;]+/).map(x => x.trim()).filter(Boolean));
+$("bcInput").onkeydown = (e) => { if (e.key === "Enter") $("btnBcCustom").click(); };
+$("btnReport").onclick = async () => {
+  try { const r = await fetch("/api/report").then(x => x.json()); $("repText").textContent = r.text; $("repDlg").hidden = false; } catch (e) { toast(e.message); }
+};
+$("repClose").onclick = () => { $("repDlg").hidden = true; };
 $("btnOpenData").onclick = () => api("/api/open-data", {}).catch(err => toast(err.message));
 $("btnRefreshRelays").onclick = async () => { try { await api("/api/relays/refresh", {}); await loadRelays(); toast(t("relaysUpdated")); } catch (e) { toast(e.message); } };
 $("btnQuit").onclick = async () => {
