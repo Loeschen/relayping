@@ -1,0 +1,40 @@
+name: Release bauen
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  windows-exe:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - name: Tests
+        run: go test ./...
+
+      - name: RelayPing.exe bauen
+        run: GOOS=windows GOARCH=amd64 CGO_ENABLED=0 go build -trimpath -ldflags "-s -w" -o RelayPing.exe .
+
+      - name: Prüfsumme
+        run: sha256sum RelayPing.exe | tee RelayPing.exe.sha256
+
+      - name: An das Release anhängen
+        if: github.event_name == 'release'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release upload "${{ github.event.release.tag_name }}" RelayPing.exe RelayPing.exe.sha256 --clobber
+
+      - name: Als Build-Artefakt ablegen
+        uses: actions/upload-artifact@v4
+        with:
+          name: RelayPing
+          path: RelayPing.exe*
