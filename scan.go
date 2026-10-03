@@ -32,6 +32,7 @@ type ScanState struct {
 	Started   time.Time    `json:"started"`
 	Finished  time.Time    `json:"finished"`
 	Error     string       `json:"error,omitempty"`
+	Auto      bool         `json:"auto"`
 	Results   []ScanResult `json:"results"`
 }
 
@@ -77,13 +78,15 @@ func (s *Scanner) Stop() {
 	}
 }
 
-func (s *Scanner) Start(countries []string, pings int) error {
+func (s *Scanner) Start(countries []string, pings int) error { return s.start(countries, pings, false) }
+
+func (s *Scanner) start(countries []string, pings int, auto bool) error {
 	if pings < 5 || pings > 100 {
-		return errors.New("Pings pro Server: 5 bis 100")
+		return errors.New(s.app.tr("Pings pro Server: 5 bis 100", "Pings per server: 5 to 100"))
 	}
 	list := s.app.relays.ByCountries(countries)
 	if len(list) == 0 {
-		return errors.New("Keine Server für diese Auswahl")
+		return errors.New(s.app.tr("Keine Server für diese Auswahl", "No servers for this selection"))
 	}
 	var ips []string
 	byIP := map[string]Relay{}
@@ -104,11 +107,11 @@ func (s *Scanner) Start(countries []string, pings int) error {
 	s.mu.Lock()
 	if s.state.Running {
 		s.mu.Unlock()
-		return errors.New("Es läuft bereits eine Messung")
+		return errors.New(s.app.tr("Es läuft bereits eine Messung", "A measurement is already running"))
 	}
 	cancel := make(chan struct{})
 	s.cancel = cancel
-	s.state = ScanState{Running: true, Total: len(ips), Countries: countries, Pings: pings, Started: time.Now()}
+	s.state = ScanState{Running: true, Total: len(ips), Countries: countries, Pings: pings, Started: time.Now(), Auto: auto}
 	s.mu.Unlock()
 	s.app.broadcast("scan", s.State())
 
@@ -131,13 +134,19 @@ func (s *Scanner) run(script string, byIP map[string]Relay, cancel chan struct{}
 		s.mu.Unlock()
 		if errText == "" {
 			s.app.csv.Scan(st)
+			var snap []HistEntry
+			now := st.Finished.Unix()
+			for _, r := range st.Results {
+				snap = append(snap, HistEntry{T: now, CC: r.CountryCode, Host: r.Host, Avg: r.Avg, Loss: float64(r.Loss)})
+			}
+			s.app.hist.Add(snap)
 		}
 		s.app.broadcast("scan", st)
 	}
 
 	sess, err := s.app.router.Session()
 	if err != nil {
-		finish("Nicht mit dem Router verbunden")
+		finish(s.app.tr("Nicht mit dem Router verbunden", "Not connected to the router"))
 		return
 	}
 	defer sess.Close()
@@ -164,7 +173,7 @@ func (s *Scanner) run(script string, byIP map[string]Relay, cancel chan struct{}
 	for {
 		select {
 		case <-cancel:
-			finish("Abgebrochen")
+			finish(s.app.tr("Abgebrochen", "Cancelled"))
 			return
 		case l, ok := <-lines:
 			if !ok {
@@ -214,4 +223,46 @@ func sortResults(r []ScanResult) {
 		}
 		return a.Avg < b.Avg
 	})
+}
+
+// AutoRun startet regelmäßig eine Rangliste mit den gespeicherten Ländern.
+func (s *Scanner) AutoRun() {
+	last := time.Now()
+	for !s.app.quitting() {
+		time.Sleep(30 * time.Second)
+		cfg := s.app.store.Get()
+		if cfg.AutoScanMin <= 0 {
+			continue
+		}
+		if time.Since(last) < time.Duration(cfg.AutoScanMin)*time.Minute {
+			continue
+		}
+		if ok, _, _ := s.app.router.State(); !ok {
+			continue
+		}
+		if s.State().Running {
+			continue
+		}
+		pings := cfg.ScanPings
+		if pings > 20 {
+			pings = 20
+		}
+		if s.start(cfg.Countries, pings, true) == nil {
+			last = time.Now()
+		}
+	}
+}
+
+// Best liefert den besten Server eines Landes aus der letzten Rangliste (höchstens 3 h alt).
+func (s *Scanner) Best(cc string) (ScanResult, bool) {
+	st := s.State()
+	if st.Running || time.Since(st.Finished) > 3*time.Hour {
+		return ScanResult{}, false
+	}
+	for _, r := range st.Results {
+		if r.CountryCode == cc && r.Recv > 0 && r.Loss == 0 {
+			return r, true
+		}
+	}
+	return ScanResult{}, false
 }

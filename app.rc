@@ -1,7 +1,7 @@
 1 ICON "icon.ico"
 1 VERSIONINFO
-FILEVERSION 0,9,0,0
-PRODUCTVERSION 0,9,0,0
+FILEVERSION 0,10,0,0
+PRODUCTVERSION 0,10,0,0
 FILEOS 0x40004
 FILETYPE 0x1
 BEGIN
@@ -11,8 +11,8 @@ BEGIN
     BEGIN
       VALUE "FileDescription", "RelayPing - Latenz zu Mullvad-WireGuard-Servern ueber GL.iNet-Router"
       VALUE "ProductName", "RelayPing"
-      VALUE "FileVersion", "0.9.0-beta"
-      VALUE "ProductVersion", "0.9.0-beta"
+      VALUE "FileVersion", "0.10.0-beta"
+      VALUE "ProductVersion", "0.10.0-beta"
       VALUE "OriginalFilename", "RelayPing.exe"
       VALUE "LegalCopyright", "(c) 2026 Bobcation - MIT-Lizenz"
     END

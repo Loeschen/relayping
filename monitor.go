@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"math"
 	"regexp"
@@ -33,6 +34,40 @@ type Monitor struct {
 
 	// Minutenwerte für den CSV-Verlauf
 	bucket minuteBucket
+	// letzte Messwerte für Warnungen (ms < 0 = verloren)
+	recent []Sample
+}
+
+type WindowStats struct {
+	N, Recv int
+	Loss    float64
+	Avg     float64
+}
+
+// Window fasst die Messwerte der letzten d zusammen.
+func (m *Monitor) Window(d time.Duration) WindowStats {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	cut := time.Now().Add(-d).UnixMilli()
+	var st WindowStats
+	sum := 0.0
+	for _, s := range m.recent {
+		if s.T < cut {
+			continue
+		}
+		st.N++
+		if s.Ms >= 0 {
+			st.Recv++
+			sum += s.Ms
+		}
+	}
+	if st.N > 0 {
+		st.Loss = float64(st.N-st.Recv) * 100 / float64(st.N)
+	}
+	if st.Recv > 0 {
+		st.Avg = sum / float64(st.Recv)
+	}
+	return st
 }
 
 type minuteBucket struct {
@@ -107,6 +142,10 @@ func (m *Monitor) emit(ms float64, at time.Time) {
 		m.bucket = minuteBucket{start: at.Truncate(time.Minute)}
 	}
 	m.bucket.add(ms)
+	m.recent = append(m.recent, Sample{Host: m.relay.Host, T: at.UnixMilli(), Ms: ms})
+	if len(m.recent) > 900 {
+		m.recent = m.recent[len(m.recent)-600:]
+	}
 	m.mu.Unlock()
 	m.app.broadcast("sample", Sample{Host: m.relay.Host, T: at.UnixMilli(), Ms: math.Round(ms*100) / 100})
 }
@@ -144,7 +183,7 @@ func (m *Monitor) Run() {
 func (m *Monitor) session() error {
 	s, err := m.app.router.Session()
 	if err != nil {
-		return fmt.Errorf("wartet auf Router")
+		return errors.New(m.app.tr("wartet auf Router", "waiting for router"))
 	}
 	defer s.Close()
 	out, err := s.StdoutPipe()
@@ -180,7 +219,7 @@ func (m *Monitor) session() error {
 			return nil
 		case l, ok := <-lines:
 			if !ok {
-				return fmt.Errorf("Ping beendet, starte neu")
+				return errors.New(m.app.tr("Ping beendet, starte neu", "ping ended, restarting"))
 			}
 			if strings.HasPrefix(l, "PID ") {
 				m.mu.Lock()
@@ -236,4 +275,16 @@ func (m *Monitor) killRemote() {
 	if _, err := strconv.Atoi(pid); err == nil {
 		go m.app.router.Run("kill "+pid+" 2>/dev/null", 5*time.Second)
 	}
+}
+
+// Recent liefert die gespeicherten Messwerte als [Zeit, ms]-Paare (ms < 0 = verloren),
+// damit eine neu geöffnete Oberfläche den Verlauf sofort zeigen kann.
+func (m *Monitor) Recent() [][2]float64 {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	out := make([][2]float64, 0, len(m.recent))
+	for _, s := range m.recent {
+		out = append(out, [2]float64{float64(s.T), math.Round(s.Ms*100) / 100})
+	}
+	return out
 }

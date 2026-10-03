@@ -26,25 +26,63 @@ var (
 	reIface = regexp.MustCompile(`^[A-Za-z0-9._@-]{1,32}$`)
 	reHost  = regexp.MustCompile(`^[A-Za-z0-9.\-]{1,253}$`)
 
-	errHostKeyChanged = errors.New("Der SSH-Schlüssel des Routers hat sich geändert. Falls du den Router zurückgesetzt oder getauscht hast: in den Einstellungen „Router-Zugang zurücksetzen“.")
-	errNoKey          = errors.New("noch nicht eingerichtet")
+	errHostKeyChanged = errors.New("hostkey-changed")
+	errNoKey          = errors.New("no-key")
+	errNotConnected   = errors.New("not-connected")
 )
 
+// locErr trägt einen übersetzten Text und behält den Grundfehler für errors.Is.
+type locErr struct {
+	base error
+	msg  string
+}
+
+func (e *locErr) Error() string { return e.msg }
+func (e *locErr) Unwrap() error { return e.base }
+
+func (r *Router) hostKeyErr() error {
+	return &locErr{errHostKeyChanged, r.app.tr(
+		"Der SSH-Schlüssel des Routers hat sich geändert. Falls du den Router zurückgesetzt oder getauscht hast: in den Einstellungen „Router-Zugang zurücksetzen“.",
+		"The router's SSH key has changed. If you reset or replaced the router: Settings → “Reset router access”.")}
+}
+
+func (r *Router) notConnected() error {
+	return &locErr{errNotConnected, r.app.tr("nicht mit dem Router verbunden", "not connected to the router")}
+}
+
 type Tunnel struct {
-	Iface string `json:"iface"`
-	IP    string `json:"ip"`
-	Host  string `json:"host"`
-	City  string `json:"city"`
-	CC    string `json:"cc"`
+	Iface     string  `json:"iface"`
+	IP        string  `json:"ip"`
+	PubKey    string  `json:"-"`
+	Host      string  `json:"host"`
+	City      string  `json:"city"`
+	CC        string  `json:"cc"`
+	Handshake int64   `json:"handshake"`     // Unix-Zeit des letzten Handshakes (Router-Uhr)
+	HSAge     int64   `json:"handshake_age"` // Sekunden seit dem letzten Handshake, -1 = nie
+	RX        uint64  `json:"rx"`
+	TX        uint64  `json:"tx"`
+	RXRate    float64 `json:"rx_rate"` // Byte/s
+	TXRate    float64 `json:"tx_rate"`
+	// aus der GL.iNet-Konfiguration (falls lesbar)
+	Name      string `json:"name,omitempty"`
+	TunnelID  int    `json:"tunnel_id,omitempty"`
+	CanSwitch bool   `json:"can_switch"`
 }
 
 type RouterInfo struct {
-	WAN      string    `json:"wan"`
-	FastPing bool      `json:"fastping"`
-	Model    string    `json:"model"`
-	Tunnels  []Tunnel  `json:"tunnels"`
-	HasWG    bool      `json:"has_wg"`
-	Checked  time.Time `json:"checked"`
+	WAN       string    `json:"wan"`
+	FastPing  bool      `json:"fastping"`
+	Model     string    `json:"model"`
+	Tunnels   []Tunnel  `json:"tunnels"`
+	HasWG     bool      `json:"has_wg"`
+	Checked   time.Time `json:"checked"`
+	Load1     float64   `json:"load1"`
+	NProc     int       `json:"nproc"`
+	MemTotal  int64     `json:"mem_total_kb"`
+	MemAvail  int64     `json:"mem_avail_kb"`
+	TempC     float64   `json:"temp_c"`
+	UptimeS   float64   `json:"uptime_s"`
+	RouterNow int64     `json:"-"`
 }
 
 type Router struct {
@@ -57,6 +95,8 @@ type Router struct {
 	info         RouterInfo
 	newHostKey   ssh.PublicKey
 	reconnecting bool
+	prevTR       map[string][3]float64 // iface -> rx, tx, zeit
+	gl           *GLState
 }
 
 func (r *Router) keyFile() string { return r.app.store.File("relayping.key") }
@@ -80,7 +120,7 @@ func (r *Router) hostKeyCB(_ string, _ net.Addr, key ssh.PublicKey) error {
 		return nil
 	}
 	if stored != got {
-		return errHostKeyChanged
+		return r.hostKeyErr()
 	}
 	return nil
 }
@@ -97,7 +137,7 @@ func fingerprint(authorized string) string {
 func (r *Router) dial(auth []ssh.AuthMethod) (*ssh.Client, error) {
 	c := r.app.store.Get()
 	if !reHost.MatchString(c.RouterHost) {
-		return nil, fmt.Errorf("Ungültige Router-Adresse")
+		return nil, errors.New(r.app.tr("Ungültige Router-Adresse", "Invalid router address"))
 	}
 	cfg := &ssh.ClientConfig{
 		User:            c.RouterUser,
@@ -109,7 +149,7 @@ func (r *Router) dial(auth []ssh.AuthMethod) (*ssh.Client, error) {
 	addr := net.JoinHostPort(c.RouterHost, strconv.Itoa(c.RouterPort))
 	cl, err := ssh.Dial("tcp", addr, cfg)
 	if err != nil {
-		return nil, friendlyErr(err)
+		return nil, r.friendlyErr(err)
 	}
 	if r.newHostKey != nil {
 		hk := strings.TrimSpace(string(ssh.MarshalAuthorizedKey(r.newHostKey)))
@@ -119,15 +159,17 @@ func (r *Router) dial(auth []ssh.AuthMethod) (*ssh.Client, error) {
 	return cl, nil
 }
 
-func friendlyErr(err error) error {
+func (r *Router) friendlyErr(err error) error {
 	s := err.Error()
 	switch {
-	case errors.Is(err, errHostKeyChanged) || strings.Contains(s, "geändert"):
-		return errHostKeyChanged
+	case errors.Is(err, errHostKeyChanged):
+		return r.hostKeyErr()
 	case strings.Contains(s, "unable to authenticate"):
-		return errors.New("Anmeldung abgelehnt – Passwort prüfen (es ist dasselbe wie im GL.iNet-Admin-Panel)")
+		return errors.New(r.app.tr("Anmeldung abgelehnt – Passwort prüfen (es ist dasselbe wie im GL.iNet-Admin-Panel)",
+			"Login rejected – check the password (it is the same as for the GL.iNet admin panel)"))
 	case strings.Contains(s, "i/o timeout") || strings.Contains(s, "no route") || strings.Contains(s, "connection refused"):
-		return fmt.Errorf("Router nicht erreichbar (%v). Adresse prüfen und ob SSH aktiv ist", err)
+		return fmt.Errorf(r.app.tr("Router nicht erreichbar (%v). Adresse prüfen und ob SSH aktiv ist",
+			"Router not reachable (%v). Check the address and whether SSH is enabled"), err)
 	}
 	return err
 }
@@ -157,9 +199,6 @@ func (r *Router) ConnectKey() error {
 
 // ConnectPassword meldet sich einmalig mit Passwort an und hinterlegt einen Schlüssel.
 func (r *Router) ConnectPassword(pw string) error {
-	if r.app.store.Get().HostKey == "" {
-		// erster Kontakt: Host-Key wird beim Dial gespeichert (Trust on first use)
-	}
 	ki := ssh.KeyboardInteractive(func(_, _ string, qs []string, _ []bool) ([]string, error) {
 		a := make([]string, len(qs))
 		for i := range a {
@@ -175,12 +214,12 @@ func (r *Router) ConnectPassword(pw string) error {
 	if err := r.installKey(cl); err != nil {
 		cl.Close()
 		r.setErr(err)
-		return fmt.Errorf("Anmeldung ok, aber Schlüssel konnte nicht hinterlegt werden: %w", err)
+		return fmt.Errorf(r.app.tr("Anmeldung ok, aber Schlüssel konnte nicht hinterlegt werden: %w", "Login ok, but the key could not be installed: %w"), err)
 	}
 	cl.Close()
 	// Gegenprobe: klappt der Schlüssel?
 	if err := r.ConnectKey(); err != nil {
-		return fmt.Errorf("Schlüssel hinterlegt, aber Anmeldung damit fehlgeschlagen: %w", err)
+		return fmt.Errorf(r.app.tr("Schlüssel hinterlegt, aber Anmeldung damit fehlgeschlagen: %w", "Key installed, but logging in with it failed: %w"), err)
 	}
 	return nil
 }
@@ -254,10 +293,10 @@ func (r *Router) keepalive(cl *ssh.Client) {
 		select {
 		case err = <-errc:
 		case <-time.After(8 * time.Second):
-			err = errors.New("Zeitüberschreitung")
+			err = errors.New(r.app.tr("Zeitüberschreitung", "timeout"))
 		}
 		if err != nil {
-			r.lost(cl, fmt.Errorf("Verbindung zum Router verloren (%v)", err))
+			r.lost(cl, fmt.Errorf(r.app.tr("Verbindung zum Router verloren (%v)", "Lost connection to the router (%v)"), err))
 			return
 		}
 	}
@@ -315,7 +354,7 @@ func (r *Router) Session() (*ssh.Session, error) {
 	cl := r.client
 	r.mu.Unlock()
 	if cl == nil {
-		return nil, errors.New("nicht mit dem Router verbunden")
+		return nil, r.notConnected()
 	}
 	s, err := cl.NewSession()
 	if err != nil {
@@ -330,7 +369,7 @@ func (r *Router) Run(cmd string, timeout time.Duration) (string, error) {
 	cl := r.client
 	r.mu.Unlock()
 	if cl == nil {
-		return "", errors.New("nicht mit dem Router verbunden")
+		return "", r.notConnected()
 	}
 	return runOn(cl, cmd, timeout)
 }
@@ -362,19 +401,29 @@ echo "WAN=$W"
 ping -c 1 -i 0.2 -W 1 127.0.0.1 >/dev/null 2>&1 && echo "FASTPING=1"
 command -v wg >/dev/null 2>&1 && echo "HASWG=1"
 wg show all endpoints 2>/dev/null | sed 's/^/EP /'
+wg show all latest-handshakes 2>/dev/null | sed 's/^/HS /'
+wg show all transfer 2>/dev/null | sed 's/^/TR /'
+echo "LOAD $(cat /proc/loadavg 2>/dev/null)"
+echo "NPROC $(grep -c ^processor /proc/cpuinfo 2>/dev/null)"
+awk '/^MemTotal:|^MemAvailable:/{print "MEM", $1, $2}' /proc/meminfo 2>/dev/null
+for z in /sys/class/thermal/thermal_zone*/temp; do [ -r "$z" ] && echo "TEMP $(cat "$z")"; done
+echo "UP $(cut -d' ' -f1 /proc/uptime 2>/dev/null)"
+echo "NOW $(date +%s)"
 echo "MODEL=$(cat /tmp/sysinfo/model 2>/dev/null)"
 `
 
-// Refresh liest WAN-Schnittstelle und aktive Tunnel-Server neu ein.
-func (r *Router) Refresh() {
-	out, err := r.Run(infoCmd, 15*time.Second)
-	if err != nil && out == "" {
-		return
-	}
+// parseInfo wertet die Ausgabe von infoCmd aus (ohne Seiteneffekte, testbar).
+func parseInfo(out string) RouterInfo {
 	var inf RouterInfo
+	hs := map[string]int64{}
+	tr := map[string][2]uint64{}
 	sc := bufio.NewScanner(strings.NewReader(out))
 	for sc.Scan() {
 		l := strings.TrimSpace(sc.Text())
+		f := strings.Fields(l)
+		if len(f) == 0 {
+			continue
+		}
 		switch {
 		case strings.HasPrefix(l, "WAN="):
 			w := strings.TrimPrefix(l, "WAN=")
@@ -387,24 +436,91 @@ func (r *Router) Refresh() {
 			inf.HasWG = true
 		case strings.HasPrefix(l, "MODEL="):
 			inf.Model = strings.TrimPrefix(l, "MODEL=")
-		case strings.HasPrefix(l, "EP "):
-			f := strings.Fields(strings.TrimPrefix(l, "EP "))
-			if len(f) < 3 {
-				continue
-			}
-			host, _, err := net.SplitHostPort(f[2])
+		case f[0] == "EP" && len(f) >= 4:
+			host, _, err := net.SplitHostPort(f[3])
 			if err != nil {
 				continue
 			}
-			t := Tunnel{Iface: f[0], IP: host}
-			if rl, ok := r.app.relays.Match(host, f[1]); ok {
-				t.Host, t.City, t.CC = rl.Host, rl.City, rl.CountryCode
+			inf.Tunnels = append(inf.Tunnels, Tunnel{Iface: f[1], PubKey: f[2], IP: host, HSAge: -1})
+		case f[0] == "HS" && len(f) >= 4:
+			v, _ := strconv.ParseInt(f[3], 10, 64)
+			hs[f[1]+" "+f[2]] = v
+		case f[0] == "TR" && len(f) >= 5:
+			rx, _ := strconv.ParseUint(f[3], 10, 64)
+			tx, _ := strconv.ParseUint(f[4], 10, 64)
+			tr[f[1]+" "+f[2]] = [2]uint64{rx, tx}
+		case f[0] == "LOAD" && len(f) >= 2:
+			inf.Load1, _ = strconv.ParseFloat(f[1], 64)
+		case f[0] == "NPROC" && len(f) >= 2:
+			inf.NProc, _ = strconv.Atoi(f[1])
+		case f[0] == "MEM" && len(f) >= 3:
+			v, _ := strconv.ParseInt(f[2], 10, 64)
+			if f[1] == "MemTotal:" {
+				inf.MemTotal = v
+			} else {
+				inf.MemAvail = v
 			}
-			inf.Tunnels = append(inf.Tunnels, t)
+		case f[0] == "TEMP" && len(f) >= 2:
+			v, _ := strconv.ParseFloat(f[1], 64)
+			if v > 1000 {
+				v /= 1000
+			}
+			if v > inf.TempC && v < 150 {
+				inf.TempC = v
+			}
+		case f[0] == "UP" && len(f) >= 2:
+			inf.UptimeS, _ = strconv.ParseFloat(f[1], 64)
+		case f[0] == "NOW" && len(f) >= 2:
+			inf.RouterNow, _ = strconv.ParseInt(f[1], 10, 64)
+		}
+	}
+	for i := range inf.Tunnels {
+		t := &inf.Tunnels[i]
+		k := t.Iface + " " + t.PubKey
+		if v, ok := hs[k]; ok && v > 0 {
+			t.Handshake = v
+			if inf.RouterNow > 0 {
+				t.HSAge = inf.RouterNow - v
+			}
+		}
+		if v, ok := tr[k]; ok {
+			t.RX, t.TX = v[0], v[1]
+		}
+	}
+	return inf
+}
+
+// Refresh liest WAN-Schnittstelle, aktive Tunnel und Router-Zustand neu ein.
+func (r *Router) Refresh() {
+	out, err := r.Run(infoCmd, 15*time.Second)
+	if err != nil && out == "" {
+		return
+	}
+	inf := parseInfo(out)
+	now := float64(time.Now().UnixMilli()) / 1000
+	r.mu.Lock()
+	if r.prevTR == nil {
+		r.prevTR = map[string][3]float64{}
+	}
+	gl := r.gl
+	for i := range inf.Tunnels {
+		t := &inf.Tunnels[i]
+		if rl, ok := r.app.relays.Match(t.IP, t.PubKey); ok {
+			t.Host, t.City, t.CC = rl.Host, rl.City, rl.CountryCode
+		}
+		if p, ok := r.prevTR[t.Iface]; ok && now > p[2] && float64(t.RX) >= p[0] && float64(t.TX) >= p[1] {
+			dt := now - p[2]
+			t.RXRate = (float64(t.RX) - p[0]) / dt
+			t.TXRate = (float64(t.TX) - p[1]) / dt
+		}
+		r.prevTR[t.Iface] = [3]float64{float64(t.RX), float64(t.TX), now}
+		if gl != nil {
+			if gt, ok := gl.ByIface(t.Iface); ok {
+				t.Name, t.TunnelID, t.CanSwitch = gt.Name, gt.TunnelID, gl.OK
+			}
 		}
 	}
 	inf.Checked = time.Now()
-	r.mu.Lock()
 	r.info = inf
 	r.mu.Unlock()
 	r.app.pushState()
@@ -427,5 +543,6 @@ func (r *Router) Forget() {
 	r.mu.Lock()
 	r.info = RouterInfo{}
 	r.lastErr = ""
+	r.gl = nil
 	r.mu.Unlock()
 }

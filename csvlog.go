@@ -71,3 +71,22 @@ func (c *CSVLog) Scan(st ScanState) {
 	}
 	c.write("ranglisten.csv", "Zeitpunkt;Platz;Server;Land;Stadt;Pings;Verlust %;Mittel ms;Jitter ms;Min ms;Max ms;Tunnel", rows)
 }
+
+func (c *CSVLog) Switch(t time.Time, tunnel, from, to, stage, msg string, dur time.Duration) {
+	// Wechsel werden unabhängig von der CSV-Einstellung protokolliert.
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	_ = os.MkdirAll(c.dir(), 0o755)
+	p := filepath.Join(c.dir(), "wechsel.csv")
+	_, statErr := os.Stat(p)
+	f, err := os.OpenFile(p, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0o644)
+	if err != nil {
+		return
+	}
+	defer f.Close()
+	if os.IsNotExist(statErr) {
+		f.WriteString("\xef\xbb\xbfZeitpunkt;Tunnel;Von;Nach;Ergebnis;Dauer s;Meldung\r\n")
+	}
+	f.WriteString(fmt.Sprintf("%s;%s;%s;%s;%s;%s;%s\r\n", t.Format("02.01.2006 15:04:05"), tunnel, from, to, stage,
+		de(dur.Seconds()), strings.ReplaceAll(msg, ";", ",")))
+}
