@@ -18,7 +18,7 @@
   --shadow: 0 1px 2px rgba(0,0,0,.04), 0 4px 16px rgba(0,0,0,.05);
 }
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme="light"]) {
     color-scheme: dark;
     --page: #0e1116; --surface: #161a21; --surface-2: #1d222b;
     --ink: #ffffff; --ink-2: #c3c6cf; --muted: #8a8f9a;
@@ -29,6 +29,17 @@
     --s5: #d55181; --s6: #008300; --s7: #9085e9; --s8: #e66767;
     --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.25);
   }
+}
+:root[data-theme="dark"] {
+    color-scheme: dark;
+    --page: #0e1116; --surface: #161a21; --surface-2: #1d222b;
+    --ink: #ffffff; --ink-2: #c3c6cf; --muted: #8a8f9a;
+    --grid: #252a33; --axis: #353b46; --border: rgba(255,255,255,0.09);
+    --accent: #3ee6c4; --accent-ink: #06231d; --accent-soft: rgba(62,230,196,0.10);
+    --good-ink: #2fc42f;
+    --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500;
+    --s5: #d55181; --s6: #008300; --s7: #9085e9; --s8: #e66767;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.25);
 }
 * { box-sizing: border-box; }
 html, body { margin: 0; background: var(--page); color: var(--ink); }
@@ -91,7 +102,8 @@ header .wrap { display: flex; align-items: center; gap: 14px; padding-top: 12px;
 .meter { display: inline-block; width: 46px; height: 5px; border-radius: 3px; background: var(--surface-2); vertical-align: middle; margin-left: 6px; overflow: hidden; }
 .meter i { display: block; height: 100%; background: var(--s1); }
 
-.tabs { display: flex; gap: 4px; margin: 22px 0 14px; border-bottom: 1px solid var(--border); }
+.tabs { display: flex; gap: 4px; margin: 22px 0 14px; border-bottom: 1px solid var(--border); overflow-x: auto; scrollbar-width: none; }
+.tabs .tab { flex: none; }
 .tab { background: none; border: 0; padding: 10px 14px; cursor: pointer; color: var(--ink-2); font-weight: 550; border-bottom: 2px solid transparent; margin-bottom: -1px; }
 .tab[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--accent); }
 
@@ -171,6 +183,15 @@ tr.active td { background: var(--accent-soft); }
 .spark { display: block; }
 .actions { display: inline-flex; gap: 6px; align-items: center; }
 .handshake-idle { color: var(--muted); }
+.statusbar { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+.sb { display: inline-flex; align-items: center; gap: 7px; padding: 5px 11px; border-radius: 999px; background: var(--surface); border: 1px solid var(--border); font-size: 12.5px; color: var(--ink-2); white-space: nowrap; }
+.sb b { color: var(--ink); font-weight: 600; }
+.sb .d { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); }
+.sb .d.l0 { background: var(--good); } .sb .d.l1 { background: var(--warning); } .sb .d.l2 { background: var(--critical); }
+.info-btn { border: 1px solid var(--border); background: var(--surface-2); color: var(--muted); width: 20px; height: 20px; border-radius: 50%; font-size: 12px; line-height: 1; cursor: pointer; padding: 0; flex: none; }
+.info-btn[aria-expanded="true"] { color: var(--accent); border-color: var(--accent); }
+.game-big { display: flex; gap: 28px; flex-wrap: wrap; align-items: baseline; }
+.hz { font-size: 13px; font-weight: 700; padding: 3px 9px; border-radius: 8px; background: var(--accent-soft); color: var(--accent); }
 .geo-head { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; padding: 12px 10px 6px; }
 .geo-head h3 { margin: 0; font-size: 15px; }
 .geo-note { font-size: 12.5px; color: var(--ink-2); padding: 0 10px 10px; line-height: 1.5; }
@@ -181,6 +202,26 @@ tr.active td { background: var(--accent-soft); }
 .st.na { background: var(--surface-2); color: var(--muted); }
 tr.rec td { background: color-mix(in srgb, var(--good) 8%, transparent); }
 .geo-input { flex: 1; min-width: 200px; }
+.line-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(330px, 100%), 1fr)); gap: 16px; }
+.line-card { padding: 14px 16px 16px; }
+.line-card h3 { margin: 0 0 10px; font-size: 15px; display: flex; align-items: center; gap: 8px 10px; flex-wrap: wrap; }
+a.btn { text-decoration: none; display: inline-flex; align-items: center; }
+a.btn:not(.primary) { color: var(--ink); }
+.line-card h3 .spacer { flex: 1; }
+.rates { display: flex; gap: 26px; align-items: baseline; flex-wrap: wrap; }
+.rate .v { font-size: 34px; font-weight: 700; letter-spacing: -.02em; }
+.rate .u { color: var(--muted); font-size: 13px; margin-left: 4px; }
+.rate .k { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
+.kv2 { display: grid; grid-template-columns: auto 1fr; gap: 6px 16px; font-size: 13.5px; margin-top: 8px; }
+.kv2 .k { color: var(--muted); }
+.note { font-size: 12.5px; color: var(--ink-2); line-height: 1.5; margin-top: 10px; }
+.note.warn { color: var(--warning); }
+.grade { display: inline-grid; place-items: center; width: 34px; height: 34px; border-radius: 9px; font-weight: 800; font-size: 18px; }
+.grade.A { background: color-mix(in srgb, var(--good) 20%, transparent); color: var(--good); }
+.grade.B { background: color-mix(in srgb, var(--good) 12%, transparent); color: var(--good); }
+.grade.C { background: color-mix(in srgb, var(--warning) 20%, transparent); color: var(--warning); }
+.grade.D { background: color-mix(in srgb, var(--critical) 18%, transparent); color: var(--critical); }
+.line-card svg { display: block; width: 100%; }
 
 footer { margin-top: 28px; display: flex; flex-wrap: wrap; gap: 10px 22px; align-items: center; color: var(--muted); font-size: 12.5px; }
 .link { color: var(--ink-2); text-decoration: underline; text-underline-offset: 2px; cursor: pointer; background: none; border: 0; padding: 0; font-size: inherit; }
@@ -197,6 +238,24 @@ footer { margin-top: 28px; display: flex; flex-wrap: wrap; gap: 10px 22px; align
 .dialog label.l { display: block; font-size: 12.5px; color: var(--ink-2); margin: 12px 0 5px; font-weight: 550; }
 .dialog .full { width: 100%; }
 .row2 { display: grid; grid-template-columns: 1fr 90px 110px; gap: 10px; }
+.row2.fb { grid-template-columns: 1fr 1fr 1fr; }
+.row2.two { grid-template-columns: 1fr 1fr; }
+.heat svg { display: block; width: 100%; height: auto; }
+.heat-legend { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; font-size: 12px; color: var(--muted); margin-top: 8px; }
+.heat-legend .grad { width: 140px; height: 10px; border-radius: 3px; }
+.heat-legend .lossdot { width: 8px; height: 8px; border-radius: 50%; background: var(--critical); display: inline-block; }
+.tip { position: fixed; z-index: 50; pointer-events: none; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 6px 9px; font-size: 12.5px; color: var(--ink); box-shadow: var(--shadow); white-space: nowrap; }
+.bad-t { font-weight: 650; }
+.dnsstrip { display: flex; gap: 2px; flex-wrap: wrap; margin-top: 8px; }
+.dnsstrip i { width: 8px; height: 14px; border-radius: 2px; background: var(--good); }
+.dnsstrip i.bad { background: var(--critical); }
+.dnsstrip i.slow { background: var(--warning); }
+.qrbox { display: flex; gap: 14px; align-items: center; flex-wrap: wrap; margin-top: 8px; }
+.qrbox canvas { background: #fff; border-radius: 8px; padding: 8px; width: 168px; height: 168px; image-rendering: pixelated; }
+.qrbox .mono { word-break: break-all; font-size: 12px; max-width: 360px; }
+.cats { display: flex; flex-wrap: wrap; gap: 6px 16px; margin: 6px 0; font-size: 13.5px; }
+.cats label { display: flex; gap: 6px; align-items: center; }
+@media (max-width: 560px) { .row2.fb, .row2.two { grid-template-columns: 1fr; } }
 .setrow { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 0; border-bottom: 1px solid var(--border); }
 .setrow:last-child { border-bottom: 0; }
 .setrow .d { color: var(--muted); font-size: 12px; }
@@ -210,11 +269,12 @@ footer { margin-top: 28px; display: flex; flex-wrap: wrap; gap: 10px 22px; align
 .swto { display: flex; align-items: center; gap: 10px; margin: 6px 0 2px; font-size: 15px; }
 .swto b { font-weight: 650; }
 @media (max-width: 640px) {
-  .wrap { padding: 0 14px 30px; } .search { min-width: 0; flex: 1; }
+  .wrap { padding: 0 14px 30px; } .search { min-width: 0; flex: 1; width: 0; } .toolbar .field, .field:has(#addInput) { flex: 1 1 100%; min-width: 0; }
   header .wrap { gap: 8px; } .brand .soon { display: none; }
   .status #statusText { display: none; } .status { padding: 7px; }
   .banner { flex-wrap: wrap; } .banner .txt { flex: 1 1 calc(100% - 70px); }
   .banner .btn { order: 3; margin-left: 34px; }
+  .line-card h3 .boardinfo { order: 9; flex-basis: 100%; }
 }
 </style>
 </head>
@@ -235,6 +295,7 @@ footer { margin-top: 28px; display: flex; flex-wrap: wrap; gap: 10px 22px; align
 </header>
 
 <main class="wrap">
+  <div class="statusbar" id="statusbar"></div>
   <section class="banners" id="banners"></section>
   <section class="tunnels" id="tunnels"></section>
   <div class="routerbar" id="routerbar" hidden></div>
@@ -244,6 +305,8 @@ footer { margin-top: 28px; display: flex; flex-wrap: wrap; gap: 10px 22px; align
     <button class="tab" role="tab" data-tab="board" aria-selected="false" data-i18n="tabBoard">Bestenliste</button>
     <button class="tab" role="tab" data-tab="scan" aria-selected="false" data-i18n="tabScan">Rangliste</button>
     <button class="tab" role="tab" data-tab="geo" aria-selected="false" data-i18n="tabGeo">Länder</button>
+    <button class="tab" role="tab" data-tab="line" aria-selected="false" data-i18n="tabLine">Leitung</button>
+    <button class="tab" role="tab" data-tab="games" aria-selected="false" data-i18n="tabGames">Spiele</button>
   </nav>
 
   <!-- LIVE -->
@@ -407,12 +470,103 @@ footer { margin-top: 28px; display: flex; flex-wrap: wrap; gap: 10px 22px; align
     </div>
   </section>
 
+  <!-- LEITUNG -->
+  <section class="panel" id="panel-line" hidden>
+    <div class="line-grid">
+      <div class="card line-card">
+        <h3><span data-i18n="lnNow">Gerade auf der Leitung</span><span class="spacer"></span><span class="boardinfo" id="lnWan"></span></h3>
+        <div class="rates">
+          <div class="rate"><div class="k" style="color:var(--s1)">↓ Download</div><span class="v num" id="lnDown">–</span><span class="u">Mbit/s</span></div>
+          <div class="rate"><div class="k" style="color:var(--s2)">↑ Upload</div><span class="v num" id="lnUp">–</span><span class="u">Mbit/s</span></div>
+        </div>
+        <svg id="lnChart" style="height:110px;margin-top:8px"></svg>
+        <div class="kv2" id="lnTun"></div>
+        <p class="note" id="lnNote" data-i18n="lnNoteT"></p>
+      </div>
+      <div class="card line-card">
+        <h3><span data-i18n="lnUsage">Datenverbrauch</span><span class="spacer"></span><span class="boardinfo" id="lnSince"></span></h3>
+        <div class="rates">
+          <div class="rate"><div class="k" data-i18n="lnToday">Heute</div><span class="v num" id="lnTodayV">–</span><span class="u">GB</span></div>
+          <div class="rate"><div class="k" id="lnMonthK">Monat</div><span class="v num" id="lnMonthV">–</span><span class="u">GB</span></div>
+        </div>
+        <svg id="lnBars" style="height:120px;margin-top:8px"></svg>
+        <div class="kv2" id="lnUseKv"></div>
+        <p class="note" id="lnUseNote"></p>
+      </div>
+      <div class="card line-card">
+        <h3><span data-i18n="pcTitle">Speedtest & Ping unter Last</span><span class="spacer"></span><button class="btn small primary" id="btnPC" data-i18n="pcStart">Test starten</button></h3>
+        <div id="pcBody"></div>
+        <p class="note" data-i18n="pcNote"></p>
+      </div>
+      <div class="card line-card">
+        <h3><span data-i18n="lkTitle">DNS-Leck-Test</span><span class="spacer"></span><button class="btn small" id="btnLeak" data-i18n="lkStart">Prüfen</button></h3>
+        <div id="lkBody"><p class="note" data-i18n="lkText"></p></div>
+      </div>
+    </div>
+    <div class="card line-card" style="margin-top:16px" id="dnsCard">
+      <h3><span data-i18n="dnsTitle">DNS-Wächter</span><span class="boardinfo" id="dnsInfo"></span><span class="spacer"></span>
+        <select id="dnsIv" aria-label="Abstand"><option value="0" data-i18n="off">aus</option><option value="30">30 s</option><option value="60">60 s</option><option value="120">2 min</option><option value="300">5 min</option></select>
+        <button class="btn small" id="btnDnsNow" data-i18n="dnsNow">Jetzt prüfen</button></h3>
+      <div class="kv2" id="dnsKv"></div>
+      <div class="dnsstrip" id="dnsStrip"></div>
+      <div class="table-wrap"><table id="dnsTable" hidden><thead><tr><th data-i18n="dnsWhen">Zeit</th><th data-i18n="dnsName">Name</th><th data-i18n="dnsRouter">Router-DNS</th><th>Mullvad-DNS</th></tr></thead><tbody id="dnsBody"></tbody></table></div>
+      <p class="note" data-i18n="dnsNote"></p>
+    </div>
+    <div class="card line-card" style="margin-top:16px" id="heatCard">
+      <h3><span data-i18n="heatTitle">Ping nach Uhrzeit</span><span class="boardinfo" id="heatInfo"></span><span class="spacer"></span>
+        <select id="heatHost" aria-label="Server"></select>
+        <div class="seg" id="heatDays"><button data-v="7" data-i18n="heat7">7 T</button><button data-v="28" aria-pressed="true" data-i18n="heat28">28 T</button></div></h3>
+      <div class="heat" id="heatBody"></div>
+      <div class="kv2" id="heatKv"></div>
+      <p class="note" data-i18n="heatNote"></p>
+    </div>
+    <div class="card line-card" style="margin-top:16px" id="fbCard" hidden>
+      <h3><span>FRITZ!Box</span><span class="boardinfo" id="fbModel"></span><span class="spacer"></span><span class="boardinfo" id="fbInfo"></span></h3>
+      <div class="rates" id="fbRates"></div>
+      <div class="kv2" id="fbKv"></div>
+      <p class="note warn" id="fbMsg" hidden></p>
+    </div>
+    <div class="card line-card" style="margin-top:16px">
+      <h3><span data-i18n="rhTitle">Router (24 h)</span><span class="spacer"></span><span class="boardinfo" id="rhInfo"></span></h3>
+      <div class="line-grid" id="rhBody" style="gap:12px"></div>
+    </div>
+    <div class="card line-card" style="margin-top:16px">
+      <h3><span data-i18n="ouTitle">Ausfälle</span><span class="spacer"></span><span class="boardinfo" id="ouInfo"></span></h3>
+      <div class="table-wrap"><table><thead><tr><th data-i18n="ouStart">Beginn</th><th data-i18n="ouDur">Dauer</th><th data-i18n="ouWhat">Was</th></tr></thead><tbody id="ouBody"></tbody></table></div>
+      <p class="note" data-i18n="ouNote"></p>
+    </div>
+    <div class="card line-card" style="margin-top:16px">
+      <h3><span data-i18n="dvTitle">Verbrauch je Gerät</span><span class="spacer"></span><button class="btn small" id="btnDev" data-i18n="dvLoad">Laden</button></h3>
+      <div class="table-wrap"><table id="dvTable" hidden><thead><tr><th data-i18n="dvName">Gerät</th><th>IP</th><th class="r">↓</th><th class="r">↑</th><th class="r" data-i18n="dvNow">Gerade</th></tr></thead><tbody id="dvBody"></tbody></table></div>
+      <p class="note" id="dvNote" data-i18n="dvText"></p>
+    </div>
+  </section>
+
+  <!-- SPIELE -->
+  <section class="panel" id="panel-games" hidden>
+    <div class="card line-card">
+      <h3><span data-i18n="gmFind">Spielverbindung</span><span class="spacer"></span><button class="btn small primary" id="btnGmScan" data-i18n="gmScan">Spiel suchen</button></h3>
+      <p class="note" data-i18n="gmFindT"></p>
+      <div id="gmScanNote"></div>
+      <div class="table-wrap"><table id="gmTable" hidden><thead><tr><th data-i18n="gmGame">Spiel</th><th data-i18n="gmServer">Server</th><th data-i18n="gmVia">Weg</th><th class="r" data-i18n="gmRate">vom Server</th><th></th></tr></thead><tbody id="gmBody"></tbody></table></div>
+    </div>
+    <div class="card line-card" style="margin-top:16px" id="gmWatchCard" hidden>
+      <h3><span data-i18n="gmWatch">Beobachtung</span><span class="boardinfo" id="gmWatchInfo"></span><span class="spacer"></span><button class="btn small" id="btnGmPing" data-i18n="gmPing">Ping mit und ohne VPN messen</button><button class="btn small" id="btnGmStop" data-i18n="gmStop">Stopp</button></h3>
+      <div class="game-big" id="gmBig"></div>
+      <svg id="gmChart" style="height:120px;margin-top:10px"></svg>
+      <div class="kv2" id="gmKv"></div>
+      <p class="note" data-i18n="gmWatchT"></p>
+      <p class="note warn" id="gmNote" hidden></p>
+    </div>
+  </section>
+
   <footer>
     <span id="relayInfo"></span>
     <button class="link" id="btnRefreshRelays" data-i18n="refresh">Aktualisieren</button>
     <span class="spacer"></span>
     <label class="toggle"><input type="checkbox" id="csvToggle"> <span data-i18n="csv">Verlauf als CSV speichern</span></label>
     <button class="link" id="btnReport" data-i18n="report">Tagesbericht</button>
+    <button class="link" id="btnMonth" data-i18n="monthRep">Monatsbericht</button>
     <button class="link" id="btnOpenData" data-i18n="openFolder">Ordner öffnen</button>
     <span class="disclaimer" data-i18n="disclaimer"></span>
   </footer>
@@ -422,8 +576,11 @@ footer { margin-top: 28px; display: flex; flex-wrap: wrap; gap: 10px 22px; align
 <div class="overlay" id="connectDlg" hidden>
   <form class="dialog" id="connectForm" autocomplete="off">
     <h2 data-i18n="connTitle"></h2>
-    <p data-i18n="connText"></p>
-    <div class="row2">
+    <div class="setrow" style="border:0;padding:0 0 4px"><span data-i18n="rtType">Router</span><div class="seg" id="rtSeg"><button type="button" data-v="glinet">GL.iNet</button><button type="button" data-v="openwrt">OpenWrt</button><button type="button" data-v="asus">Asus</button><button type="button" data-v="pc" data-i18n="rtPC">Ohne Router</button></div></div>
+    <div class="note warn" id="cNeed" data-i18n="needLogin" hidden></div>
+    <p id="cText"></p>
+    <div id="cPC" hidden><div class="actions"><button class="btn primary" id="btnLocalOn" type="button" data-i18n="pcModeStart">Vom PC aus messen</button></div></div>
+    <div class="row2" id="cRouterRow">
       <div><label class="l" for="cHost" data-i18n="routerAddr"></label><input type="text" class="full" id="cHost" value="192.168.8.1"></div>
       <div><label class="l" for="cPort" data-i18n="sshPort"></label><input type="number" class="full" id="cPort" value="22" min="1" max="65535"></div>
       <div><label class="l" for="cUser" data-i18n="user"></label><input type="text" class="full" id="cUser" value="root"></div>
@@ -453,7 +610,7 @@ footer { margin-top: 28px; display: flex; flex-wrap: wrap; gap: 10px 22px; align
     <h2 data-i18n="report"></h2>
     <p class="muted" data-i18n="reportD"></p>
     <pre id="repText" style="white-space:pre-wrap;font-size:12.5px;line-height:1.5;max-height:60vh;overflow:auto;background:var(--surface-2);padding:12px;border-radius:10px"></pre>
-    <div class="actions"><button class="btn primary" id="repClose" data-i18n="close"></button></div>
+    <div class="actions"><button class="btn" id="repPrev" hidden data-i18n="prevMonth">Vormonat</button><button class="btn primary" id="repClose" data-i18n="close"></button></div>
   </div>
 </div>
 
@@ -463,6 +620,8 @@ footer { margin-top: 28px; display: flex; flex-wrap: wrap; gap: 10px 22px; align
     <h2 data-i18n="settings"></h2>
     <h4 data-i18n="secGeneral"></h4>
     <div class="setrow"><span data-i18n="language"></span><div class="seg" id="langSeg"><button data-v="de">Deutsch</button><button data-v="en">English</button></div></div>
+    <div class="setrow"><span data-i18n="themeL">Design</span><div class="seg" id="themeSeg"><button data-v="system" data-i18n="thSystem">System</button><button data-v="hell" data-i18n="thLight">Hell</button><button data-v="dunkel" data-i18n="thDark">Dunkel</button></div></div>
+    <div class="setrow"><label style="display:flex;gap:10px;align-items:center;flex:1"><input type="checkbox" id="setUpdate"><span><span data-i18n="updCheck">Täglich nach Updates suchen</span><br><span class="muted" style="font-size:12px" id="updInfo"></span></span></label><button class="btn small" id="btnUpdNow" data-i18n="updNow">Jetzt prüfen</button></div>
     <div class="setrow" id="autostartRow" hidden><div><div data-i18n="autostart"></div><div class="d" data-i18n="autostartD"></div></div><input type="checkbox" class="toggle" id="setAutostart"></div>
     <h4 data-i18n="secAlerts"></h4>
     <div class="setrow"><div><div data-i18n="alertsOn"></div><div class="d" data-i18n="alertsD"></div></div><input type="checkbox" id="setAlerts"></div>
@@ -473,6 +632,47 @@ footer { margin-top: 28px; display: flex; flex-wrap: wrap; gap: 10px 22px; align
       <select id="setAutoScan"><option value="0"></option><option value="30">30 min</option><option value="60">60 min</option><option value="120">2 h</option><option value="240">4 h</option></select></div>
     <h4 data-i18n="secRouter"></h4>
     <div class="kv" id="setKv"></div>
+    <div id="setKey" hidden style="margin-top:10px">
+      <div class="setrow" style="border:0;padding:0"><span data-i18n="pubKey">SSH-Schlüssel von RelayPing</span><button class="btn small" id="btnCopyKey" type="button" data-i18n="copy">Kopieren</button></div>
+      <div class="note" data-i18n="pubKeyAsus"></div>
+    </div>
+    <h4 data-i18n="secFritz">FRITZ!Box</h4>
+    <div class="setrow"><div><div data-i18n="fbOn">FRITZ!Box abfragen</div><div class="d" data-i18n="fbOnD"></div></div><input type="checkbox" id="fbOn"></div>
+    <div id="fbFields" hidden>
+      <div class="row2 fb">
+        <div><label class="l" for="fbHost" data-i18n="fbHost">Adresse</label><input type="text" class="full" id="fbHost" autocomplete="off"></div>
+        <div><label class="l" for="fbUser" data-i18n="fbUser">Benutzer</label><input type="text" class="full" id="fbUser" autocomplete="off"></div>
+        <div><label class="l" for="fbPass" data-i18n="fbPass">Passwort</label><input type="password" class="full" id="fbPass" autocomplete="new-password"></div>
+      </div>
+      <div class="setrow" style="border:0"><span class="muted" id="fbState" style="font-size:12.5px;flex:1"></span><button class="btn small" id="btnFbClear" type="button" data-i18n="fbClear" hidden>Passwort löschen</button><button class="btn small primary" id="btnFbSave" type="button" data-i18n="fbSave">Speichern & testen</button></div>
+      <div class="note" data-i18n="fbNote"></div>
+    </div>
+    <h4 data-i18n="secPC">Messung</h4>
+    <div class="setrow"><div><div data-i18n="pcMode">Ohne Router vom PC aus messen</div><div class="d" data-i18n="pcModeD"></div></div><input type="checkbox" id="setLocal"></div>
+    <h4 data-i18n="secPush">Meldungen aufs Handy</h4>
+    <div class="setrow"><span data-i18n="pushVia">Senden über</span><div class="seg" id="pushSeg"><button data-v="" data-i18n="off">aus</button><button data-v="ntfy">ntfy</button><button data-v="telegram">Telegram</button></div></div>
+    <div id="pushNtfy" hidden>
+      <label class="l" for="pushNtfyUrl" data-i18n="pushNtfyUrl">ntfy-Thema (Adresse)</label>
+      <div style="display:flex;gap:8px"><input type="text" class="full" id="pushNtfyUrl" autocomplete="off" placeholder="https://ntfy.sh/…"><button class="btn small" type="button" id="btnNtfyRand" data-i18n="pushRand">Zufällig</button></div>
+    </div>
+    <div id="pushTg" hidden class="row2 two">
+      <div><label class="l" for="pushTgToken" data-i18n="pushTgToken">Bot-Token</label><input type="password" class="full" id="pushTgToken" autocomplete="off"></div>
+      <div><label class="l" for="pushTgChat" data-i18n="pushTgChat">Chat-ID</label><input type="text" class="full" id="pushTgChat" autocomplete="off"></div>
+    </div>
+    <div id="pushCatsBox" hidden>
+      <div class="d" style="margin-top:8px" data-i18n="pushWhat">Was soll gemeldet werden?</div>
+      <div class="cats" id="pushCats"></div>
+      <div class="setrow" style="border:0"><span class="muted" id="pushState" style="font-size:12.5px;flex:1"></span><button class="btn small" id="btnPushTest" type="button" data-i18n="pushTest">Test senden</button><button class="btn small primary" id="btnPushSave" type="button" data-i18n="save">Speichern</button></div>
+      <div class="note" data-i18n="pushNote"></div>
+    </div>
+    <h4 data-i18n="secLAN">Handy-Ansicht im Heimnetz</h4>
+    <div class="setrow"><div><div data-i18n="lanOn">RelayPing auch im Heimnetz anbieten</div><div class="d" data-i18n="lanOnD"></div></div><input type="checkbox" id="lanOn"></div>
+    <div id="lanBox" hidden>
+      <div class="qrbox"><canvas id="lanQR" width="168" height="168"></canvas><div><div class="mono" id="lanURL"></div>
+        <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap"><button class="btn small" id="btnLanNew" type="button" data-i18n="lanNew">Neuen Code erzeugen</button><label class="l" style="display:flex;gap:6px;align-items:center;margin:0">Port <input type="number" id="lanPort" min="1024" max="65535" style="width:90px"></label></div></div></div>
+      <div class="err" id="lanErr" hidden></div>
+      <div class="note" data-i18n="lanNote"></div>
+    </div>
     <div class="err" id="setErr" hidden></div>
     <div class="actions" style="justify-content: space-between;">
       <button class="btn" id="btnForget" data-i18n="forget"></button>
@@ -484,6 +684,7 @@ footer { margin-top: 28px; display: flex; flex-wrap: wrap; gap: 10px 22px; align
 
 <div class="toast" id="toast" hidden></div>
 
+<script src="/qrcode.js"></script>
 <script>
 "use strict";
 // ---------- Texte ----------
@@ -498,8 +699,45 @@ const I18N = {
     pingsPer: "Pings pro Server", measure: "Messen", cancelScan: "Abbrechen",
     scanEmpty: "Noch keine Messung. Länder wählen und auf „Messen“ klicken – jeder Server wird vom Router aus angepingt, am Tunnel vorbei.",
     refresh: "Aktualisieren", csv: "Verlauf als CSV speichern", openFolder: "Ordner öffnen",
-    disclaimer: "Inoffizielles Community-Tool · nicht mit Mullvad VPN AB oder GL.iNet verbunden",
-    connTitle: "Mit dem GL.iNet-Router verbinden", connText: "Einmalig mit dem Passwort des GL.iNet-Admin-Panels anmelden. Danach hinterlegt RelayPing einen eigenen Schlüssel auf dem Router – das Passwort wird nirgends gespeichert.",
+    disclaimer: "Inoffizielles Community-Tool · nicht mit Mullvad VPN AB, GL.iNet, ASUS oder AVM verbunden",
+    connTitle: "Mit dem Router verbinden", rtType: "Router", rtPC: "Ohne Router",
+    connText_pc: "Ohne Router-Zugang misst RelayPing direkt vom PC aus (z. B. mit nur einer FRITZ!Box und der Mullvad-App). Live-Ansicht, Bestenliste, Rangliste und Länder funktionieren; Tunnel-Übersicht, Server-Wechsel und Router-Werte nicht. Ist die Mullvad-App verbunden, nimm RelayPing dort unter „Split-Tunneling“ aus – sonst misst du den Weg durch den Tunnel.",
+    pcModeStart: "Vom PC aus messen", pcModeHead: "PC-Messung (ohne Router)", pcModeOn: "Misst jetzt vom PC aus", pcModeOff: "Misst wieder über den Router",
+    secPC: "Messung", pcMode: "Ohne Router vom PC aus messen", pcModeD: "Für Anschlüsse ohne Router-Zugang. Tunnel, Server-Wechsel und Router-Werte entfallen.",
+    pcModeQ: "Auf PC-Messung umstellen? Die Verbindung zum Router wird getrennt (am Router ändert sich nichts).", pcModeOffQ: "Wieder über den Router messen?",
+    dnsTitle: "DNS-Wächter", dnsNow: "Jetzt prüfen", dnsWhen: "Zeit", dnsName: "Name", dnsRouter: "Router-DNS", dnsEvery: "alle {s}",
+    dnsStat: "{b} Probleme bei {n} Abfragen (24 h) · Median {m} ms", dnsNoDirect: "nicht erreichbar (kein Mullvad-Tunnel?)", dnsWait: "erste Prüfung folgt …", dnsOffT: "aus – Abstand oben wählen",
+    dnsRandom: "Zufallsname", dnsC_servfail: "Server failed", dnsC_nxdomain: "gibt es nicht", "dnsC_keine-ipv4": "keine IPv4", dnsC_timeout: "keine Antwort", dnsC_langsam: "langsam", dnsC_fehler: "Fehler", dnsC_aus: "–",
+    dnsNote: "Fragt im gewählten Abstand einen bekannten Namen und einen ausgedachten (der am Zwischenspeicher vorbeigeht) ab – einmal über den DNS des Routers (bei GL.iNet AdGuard Home) und zum Vergleich direkt beim Mullvad-DNS im Tunnel. Fehlt nur beim Router etwas, liegt es am Router; fehlt es bei beiden, an Mullvad. Probleme landen als Kurzaussetzer „DNS“ unter Ausfälle. Nur Abfragen, am Router wird nichts geändert.",
+    heatTitle: "Ping nach Uhrzeit", heat7: "7 T", heat28: "28 T", heatMins: "{h} h gemessen", heatH: "Uhr", heatNoData: "keine Daten", heatAllLost: "keine Antwort ({m} min)", heatCell: "Ø {ms} ms · Verlust {l} % · {m} min",
+    heatLoss: "Verlust ab 1 %", heatEve: "Abends vs. nachts", heatEveV: "19–23 Uhr Ø {e} ms, 2–7 Uhr Ø {n} ms ({d} ms)", heatWorst: "Langsamste Stunde", heatTypical: "üblich {b} ms",
+    heatNone: "Noch zu wenig Daten – die Karte füllt sich mit den Minutenwerten der live beobachteten Server (mindestens eine Stunde).", heatCsvOff: "„Verlauf als CSV speichern“ ist aus – die Karte braucht die Minutenwerte.",
+    heatNote: "Je dunkler, desto langsamer – jeweils im Vergleich zum schnellsten Wert dieses Servers. Grundlage sind die Minutenwerte der live beobachteten Server (verlauf/live-minutenwerte.csv). So siehst du, ob ein Server z. B. abends voller wird.",
+    secPush: "Meldungen aufs Handy", pushVia: "Senden über", pushNtfyUrl: "ntfy-Thema (Adresse)", pushRand: "Zufällig", pushTgToken: "Bot-Token", pushTgChat: "Chat-ID", pushWhat: "Was soll gemeldet werden?",
+    pushTest: "Test senden", save: "Speichern", saved: "Gespeichert", pushSent: "Test gesendet", pushOff: "Handy-Meldungen aus", pushOk: "eingerichtet · {n} gesendet",
+    pushC_ausfall: "Ausfälle", pushC_kurz: "Kurzaussetzer", pushC_dns: "DNS-Probleme", pushC_warnung: "Tunnel langsam", pushC_wechsel: "Server-Wechsel", pushC_update: "Neue Version",
+    pushNote: "ntfy: App „ntfy“ installieren und dort dasselbe Thema abonnieren. Das Thema wirkt wie ein Passwort – wer es kennt, liest mit; deshalb ein zufälliges nehmen. Telegram: bei @BotFather einen Bot anlegen, ihm einmal schreiben und die Chat-ID eintragen. Meldungen laufen über die Server von ntfy bzw. Telegram. Zugangsdaten speichert RelayPing mit Windows verschlüsselt. Pro Art höchstens eine Nachricht je Minute.",
+    secLAN: "Handy-Ansicht im Heimnetz", lanOn: "RelayPing auch im Heimnetz anbieten", lanOnD: "Dann lässt sich RelayPing vom Handy im selben WLAN öffnen – per QR-Code.",
+    lanNew: "Neuen Code erzeugen", lanNewOk: "Neuer Code – alte Handy-Zugänge gelten nicht mehr",
+    lanQ: "RelayPing im Heimnetz anbieten? Wer den QR-Code hat, kann im selben Netz die Messungen sehen, messen und Server wechseln. Einstellungen und Beenden bleiben dem PC vorbehalten. Windows fragt beim ersten Mal nach der Firewall – „Private Netzwerke“ erlauben.",
+    lanNote: "QR-Code mit der Handy-Kamera scannen (Handy im WLAN des Routers). Über das Handy gesperrt: Einstellungen, Beenden, Router-Zugang. Die Verbindung im Heimnetz ist unverschlüsselt (http) – den Code also nicht weitergeben. „Neuen Code erzeugen“ sperrt alte Zugänge.",
+    ouBlipDns: "DNS-Aussetzer ({t})",
+    connText_glinet: "Einmalig mit dem Passwort des GL.iNet-Admin-Panels anmelden (Benutzer „root“). Danach legt RelayPing einen eigenen SSH-Schlüssel auf dem Router ab – das Passwort wird nirgends gespeichert. Einstellungen des Routers ändert RelayPing nicht, außer du wechselst selbst den VPN-Server.",
+    connText_openwrt: "SSH muss aktiv sein (bei OpenWrt Standard). Einmalig mit dem root-Passwort anmelden; danach legt RelayPing einen eigenen SSH-Schlüssel ab – das Passwort wird nirgends gespeichert. Einstellungen des Routers ändert RelayPing nicht, außer du wechselst selbst den VPN-Server.",
+    connText_asus: "In der Asus-Oberfläche muss unter Administration → System „SSH aktivieren“ auf „LAN only“ stehen. Anmelden mit Name und Passwort der Asus-Oberfläche. Einstellungen des Routers ändert RelayPing nicht, außer du wechselst selbst den VPN-Server. Asus vergisst fremde Schlüssel bei jedem Neustart – dauerhaft wird der Schlüssel, wenn du ihn danach aus den RelayPing-Einstellungen in der Asus-Oberfläche unter „Autorisierte Schlüssel“ einträgst.",
+    needLogin: "Der Router nimmt den Schlüssel von RelayPing nicht mehr an (bei Asus nach jedem Neustart, solange er nicht in der Asus-Oberfläche eingetragen ist). Bitte einmal neu anmelden.",
+    platform: "Router-Typ", firmware: "Firmware", pubKey: "SSH-Schlüssel von RelayPing", copy: "Kopieren", copied: "In die Zwischenablage kopiert",
+    pubKeyAsus: "Damit RelayPing nach einem Neustart des Asus-Routers ohne Passwort weiterkommt: Schlüssel kopieren und in der Asus-Oberfläche unter Administration → System → „Autorisierte Schlüssel“ einfügen. Das machst du selbst – RelayPing ändert keine Router-Einstellungen.",
+    secFritz: "FRITZ!Box", fbOn: "FRITZ!Box abfragen", fbOnD: "Nur lesen: Internetverbindung, Datenrate, Verbrauch, Neuverbindungen. RelayPing ändert an der FRITZ!Box nichts.",
+    fbHost: "Adresse", fbUser: "Benutzer (optional)", fbPass: "Passwort (optional)", fbSave: "Speichern & testen", fbClear: "Passwort löschen", fbPassSaved: "gespeichert",
+    fbNote: "Ohne Passwort genügen die UPnP-Statusinformationen der FRITZ!Box (Heimnetz → Netzwerk → Netzwerkeinstellungen: „Statusinformationen über UPnP übertragen“). Mit Benutzer und Passwort erkennt RelayPing zusätzlich Neustarts der Box; ist der Benutzer leer, nimmt RelayPing den zuletzt angemeldeten. Das Passwort wird mit Windows verschlüsselt gespeichert und kann nur von deinem Windows-Konto gelesen werden.",
+    fbOk: "verbunden", fbViaPC: "direkt vom PC", fbViaRouter: "über den Router", fbOff: "aus",
+    fbOnline: "online", fbOffline: "offline", fbSince: "seit {d}", fbAccess: "Anschluss", fbLine: "Leitung (max.)", fbConnSince: "Verbunden seit", fbVia: "Abfrage", fbFw: "FRITZ!OS",
+    fbAuth: "Anmeldung", fbAuthOk: "ok", fbAuthOff: "ohne Passwort", fbBoot: "Box läuft seit", fbCompare: "Zum Vergleich",
+    fbCompareT: "FRITZ!Box {f} GB, Router {r} GB diesen Monat",
+    fbCompareN: "Die FRITZ!Box zählt alle Geräte in ihrem Netz, der Router nur seinen Anschluss. Zählt der Router deutlich weniger, obwohl fast alles über ihn läuft, übersieht sein Zähler Verkehr (Hardware-Beschleunigung).",
+    acc_DSL: "DSL", acc_Ethernet: "Ethernet/Glasfaser", "acc_X_AVM-DE_Fiber": "Glasfaser", "acc_X_AVM-DE_Cable": "Kabel", "acc_X_AVM-DE_Mobile": "Mobilfunk",
+    ouFritz: "FRITZ!Box ohne Internetverbindung", ouFritzNew: "FRITZ!Box hat neu verbunden", ouFritzBoot: "FRITZ!Box neu gestartet",
     routerAddr: "Router-Adresse", sshPort: "SSH-Port", user: "Benutzer", password: "Passwort", connect: "Verbinden", connecting: "Verbinde …",
     connNote: "Gemessen wird auf dem Router selbst über die WAN-Leitung – vom PC aus läge immer der aktive Tunnel dazwischen.",
     swTitle: "Server wechseln?", swText: "Laufende Verbindungen über diesen Tunnel brechen für einige Sekunden ab. Kommt keine Verbindung zum neuen Server zustande, stellt RelayPing nach 35 Sekunden automatisch den bisherigen wieder ein.",
@@ -536,6 +774,38 @@ const I18N = {
     quoted: "„{n}“", idle: "Leerlauf", hsIdleT: "Über diesen Tunnel läuft gerade kaum Verkehr – ein älterer Handshake ist dann normal.", hsBadT: "Es wird gesendet, aber seit über 3 Minuten kam kein Handshake zustande.",
     alertLossT: "Tunnel {t}: {h} verliert {v} % der Pakete.", alertSlowT: "Tunnel {t}: {h} braucht {v} ms, {b} nur {bv} ms.", alertSuggest: "Vorschlag: auf {b} wechseln.",
     notOnBoard: "{cc} ist nicht in der Bestenliste.", addToBoard: "Aufnehmen", srcCache: "Zwischenspeicher", srcApi: "Mullvad-API",
+    tabGames: "Spiele", gmFind: "Spielverbindung", gmScan: "Spiel suchen", gmGame: "Spiel", gmServer: "Server", gmVia: "Weg", gmRate: "vom Server", gmWatchBtn: "Beobachten",
+    gmFindT: "Starte ein Spiel (am besten eine laufende Runde) und klicke auf „Spiel suchen“. Der Router zeigt dann, mit welchen Servern dein PC gerade spielt – erkannt an bekannten Spiel-Ports oder regelmäßigem UDP-Verkehr.",
+   
+    gmWatch: "Beobachtung", gmPing: "Ping mit und ohne VPN messen", gmStop: "Stopp", gmUpd: "Updates vom Server", gmPerSec: "/s", gmTick: "≈ {n} Hz", gmNoTick: "keine übliche Rate", gmStable: "gleichmäßig", gmDrops: "Einbrüche", gmPingTun: "Ping durch Tunnel {t}", gmPingDir: "Ping direkt (ohne VPN)", gmPingDiff: "VPN kostet",
+    gmNoReply: "Server antwortet nicht", gmPingHowTcp: "gemessen per Verbindungsaufbau (bester von 5)", gmPingHowIcmp: "gemessen per Ping (Ø von 5)", gmDirect: "direkt", gmTunnel: "Tunnel {t}", gmRunning: "läuft seit {t}", gmEnded: "beendet",
+    gmWatchT: "Gezählt werden die Pakete, die der Spielserver pro Sekunde an deinen PC schickt. Bei Shootern entspricht das meist der Update-Rate (Tickrate); manche Spiele rechnen intern schneller, als sie senden. WoW und Heroes haben keine feste Tickrate. Die Messung „direkt“ läuft vom Router am VPN vorbei – der Spielserver sieht dabei einmal kurz deine echte IP-Adresse.",
+    gmPingQ: "Der Router misst den Spielserver einmal durch den Tunnel und einmal direkt über die Leitung. Bei der direkten Messung sieht der Spielserver kurz deine echte IP-Adresse (nur ein Verbindungsaufbau, keine Daten). Messen?",
+    rhTitle: "Router (24 h)", rhCpu: "CPU-Last", rhRam: "RAM", rhTemp: "Temperatur", rhNone: "Noch keine Werte – der Verlauf füllt sich minütlich.",
+    monthRep: "Monatsbericht", prevMonth: "Vormonat", thisMonth: "Dieser Monat", themeL: "Design", thSystem: "System", thLight: "Hell", thDark: "Dunkel",
+    updCheck: "Täglich nach Updates suchen", updNow: "Jetzt prüfen", updLast: "zuletzt geprüft {t}", updNone: "RelayPing ist aktuell ({v})", updAvail: "Neue Version {v} verfügbar", updInstall: "Jetzt aktualisieren", updDetails: "Was ist neu?",
+    updQ: "RelayPing lädt Version {v} von GitHub, prüft die Prüfsumme und startet neu. Fortfahren?", updManual: "Download auf GitHub",
+    lkDnsVia: "DNS beantwortet von", lkDnsRoute: "DNS-Weg am Router", lkUpstream: "AdGuard Home fragt", lkDnsOther: "Deine DNS-Anfragen laufen über {d}, dein übriger Verkehr über {t}. Das ist kein Leck – aber Seiten mit Servern in mehreren Ländern (Videos, Downloads) können dich dadurch an weiter entfernte Server schicken.",
+    lkDnsFix: "Abhilfe: Im GL.iNet-Panel unter VPN → VPN Dashboard beim Tunnel „{t}“ in den Einstellungen (Zahnrad) die DNS-Option prüfen, oder in AdGuard Home als Upstream den Mullvad-DNS des Standard-Tunnels eintragen. RelayPing ändert das nicht selbst.",
+    sbDown: "↓", sbUp: "↑", sbRouter: "Router", off: "aus",
+    tabLine: "Leitung", lnNow: "Gerade auf der Leitung", upl: "↑", lnNoteT: "Gemessen am Internet-Anschluss des Routers (alle Geräte zusammen, inkl. VPN-Verpackung). Läuft nur, solange RelayPing geöffnet ist.",
+    lnUsage: "Datenverbrauch", lnToday: "Heute", lnMonth: "{m}", lnPrev: "Vormonat", lnForecast: "Hochrechnung Monat", lnVpn: "davon durch Tunnel", lnSince: "gezählt seit {d}",
+    lnGaps: "{n}× Router-Neustart, während RelayPing aus war – dabei kann ein Teil fehlen. Zum Vergleich zählt auch die FRITZ!Box unter Internet → Online-Monitor → Online-Zähler.",
+    lnSuspect: "Achtung: Der Leitungszähler des Routers zählt weniger als die Tunnel – vermutlich umgeht die Hardware-Beschleunigung den Zähler. Der Monatswert ist dann zu niedrig; die Tunnelwerte stimmen.",
+    lnUseNote: "Der Router zählt jedes Byte seit seinem letzten Neustart. RelayPing liest den Zähler alle 10 Sekunden und holt nach dem Start nach, was in der Zwischenzeit lief.", lnNoData: "Noch keine Zählerstände – startet beim nächsten Router-Abgleich.",
+    pcTitle: "Speedtest & Ping unter Last", pcStart: "Test starten", pcRunning: "läuft …", pcIdle: "Leerlauf-Ping messen …", pcDown: "Download …", pcUp: "Upload …",
+    pcNote: "Misst auf diesem PC über deinen Standard-Tunnel (ca. 25 s, je nach Leitung bis etwa 2 GB). Gleichzeitig pingt der Router durch den Tunnel – steigt der Ping unter Last stark, ruckeln Spiele und Videocalls bei vollen Downloads.",
+    pcDownL: "Download", pcUpL: "Upload", pcPingIdle: "Ping Leerlauf", pcPingDown: "Ping beim Download", pcPingUp: "Ping beim Upload", pcGrade: "Ping unter Last", pcNever: "Noch kein Test.",
+    gradeA: "sehr gut – kaum Anstieg", gradeB: "gut", gradeC: "spürbar – Spiele können ruckeln", gradeD: "stark – SQM/QoS auf dem Router würde helfen", pcVia: "über {t} ({h})",
+    lkTitle: "DNS-Leck-Test", lkStart: "Prüfen", lkText: "Prüft mit Mullvads eigener Verbindungsprüfung, ob dieser PC über Mullvad ins Internet geht und ob alle DNS-Anfragen bei Mullvad landen.",
+    lkExit: "Ausgang", lkYes: "Mullvad ✓", lkNo: "NICHT Mullvad", lkDns: "DNS", lkNoLeak: "kein Leck – nur Mullvad-DNS", lkLeak: "LECK – DNS-Anfragen gehen nicht nur an Mullvad", lkListed: "Diese Mullvad-Adresse steht auf einer Sperrliste", lkErr: "Mullvads Prüfdienst war nicht erreichbar:",
+    ouTitle: "Ausfälle", ouStart: "Beginn", ouDur: "Dauer", ouWhat: "Was", ouNone: "Keine Ausfälle erfasst.", ouCount: "{n} in den letzten 30 Tagen", ouOpen: "läuft noch",
+    ouNote: "Jede Sekunde pingt der Router 1.1.1.1, 9.9.9.9 und 8.8.8.8 über die Leitung und das Mullvad-Gateway durch jeden Tunnel, und der PC pingt den Router. Daraus erkennt RelayPing auch Aussetzer ab etwa 2 Sekunden und sagt, wo es hing: Internet (alle drei Ziele weg), nur der Tunnel, oder WLAN/Kabel zwischen PC und Router. Ab 30 Sekunden gilt es als Ausfall. Erfasst wird, solange RelayPing läuft; Router-Neustarts werden immer erkannt. Liste auch in verlauf/ausfaelle.csv.",
+    ouBlipNet: "Kurzaussetzer Internet", ouBlipTun: "Kurzaussetzer Tunnel {t}", ouBlipLan: "Kurzaussetzer PC ↔ Router (WLAN/Kabel)",
+    ouCount2: "{n} Ausfälle, {k} Kurzaussetzer in 30 Tagen", ouLostIn: "{a} weg in {b}", ouTimes: "{n} Aussetzer dicht hintereinander", sbBlips: "Aussetzer heute: {n}", sbBlipsT: "Letzter: {w} um {t} ({d} s) – Details unter Leitung → Ausfälle",
+    blNet: "Internet", blTun: "Tunnel {t}", blLan: "PC ↔ Router",
+    ouInternet: "Internet ausgefallen", ouTunnel: "Tunnel {t} ohne Verbindung", ouRouter: "Router für RelayPing nicht erreichbar", ouReboot: "Router neu gestartet",
+    dvTitle: "Verbrauch je Gerät", dvLoad: "Laden", dvName: "Gerät", dvNow: "Gerade", dvText: "Aus der Geräteliste des Routers (seit dessen Neustart bzw. seit das Gerät verbunden ist).", dvNoTraffic: "Die Router-Firmware liefert zu den Geräten keine Datenmengen.",
     tabGeo: "Länder", geoTitle: "Ländervergleich", geoMeasure: "Länder messen", geoRunning: "Messung läuft … {d} von {n} Servern",
     geoText: "Misst die europäischen Länder außer Deutschland (10 Pings je Server, am Tunnel vorbei) und empfiehlt das schnellste Land ohne bekannte Altersprüfungs-Pflicht für Erwachsenen-Seiten – passend für deinen Tunnel mit der Domainliste.",
     colCountry: "Land", colBestServer: "Bester Server", colPing: "Ping", colProfiles: "Profile", colAdult: "Erwachsenen-Seiten",
@@ -563,8 +833,45 @@ const I18N = {
     pingsPer: "Pings per server", measure: "Measure", cancelScan: "Cancel",
     scanEmpty: "No measurement yet. Choose countries and click “Measure” – every server is pinged from the router, bypassing the tunnel.",
     refresh: "Refresh", csv: "Save history as CSV", openFolder: "Open folder",
-    disclaimer: "Unofficial community tool · not affiliated with Mullvad VPN AB or GL.iNet",
-    connTitle: "Connect to the GL.iNet router", connText: "Log in once with the GL.iNet admin panel password. RelayPing then installs its own key on the router – the password is never stored.",
+    disclaimer: "Unofficial community tool · not affiliated with Mullvad VPN AB, GL.iNet, ASUS or AVM",
+    connTitle: "Connect to the router", rtType: "Router", rtPC: "No router",
+    connText_pc: "Without router access RelayPing measures directly from the PC (e.g. with just a FRITZ!Box and the Mullvad app). Live view, leaderboard, ranking and countries work; tunnel overview, server switching and router values do not. If the Mullvad app is connected, exclude RelayPing there under “Split tunneling” – otherwise you measure the path through the tunnel.",
+    pcModeStart: "Measure from the PC", pcModeHead: "PC measurement (no router)", pcModeOn: "Now measuring from the PC", pcModeOff: "Measuring via the router again",
+    secPC: "Measurement", pcMode: "Measure from the PC without a router", pcModeD: "For connections without router access. Tunnels, server switching and router values are not available.",
+    pcModeQ: "Switch to PC measurement? The router connection is closed (nothing changes on the router).", pcModeOffQ: "Measure via the router again?",
+    dnsTitle: "DNS watch", dnsNow: "Check now", dnsWhen: "Time", dnsName: "Name", dnsRouter: "Router DNS", dnsEvery: "every {s}",
+    dnsStat: "{b} problems in {n} queries (24 h) · median {m} ms", dnsNoDirect: "not reachable (no Mullvad tunnel?)", dnsWait: "first check coming …", dnsOffT: "off – choose an interval above",
+    dnsRandom: "random name", dnsC_servfail: "server failed", dnsC_nxdomain: "does not exist", "dnsC_keine-ipv4": "no IPv4", dnsC_timeout: "no answer", dnsC_langsam: "slow", dnsC_fehler: "error", dnsC_aus: "–",
+    dnsNote: "At the chosen interval it looks up a well-known name and a made-up one (which bypasses caches) – once via the router's DNS (AdGuard Home on GL.iNet) and for comparison directly at the Mullvad DNS in the tunnel. If only the router fails, the router is the cause; if both fail, Mullvad. Problems appear as short dropouts “DNS” under outages. Queries only, nothing is changed on the router.",
+    heatTitle: "Ping by time of day", heat7: "7 d", heat28: "28 d", heatMins: "{h} h measured", heatH: "h", heatNoData: "no data", heatAllLost: "no answer ({m} min)", heatCell: "avg {ms} ms · loss {l}% · {m} min",
+    heatLoss: "loss from 1%", heatEve: "Evening vs. night", heatEveV: "7–11 pm avg {e} ms, 2–7 am avg {n} ms ({d} ms)", heatWorst: "Slowest hour", heatTypical: "typically {b} ms",
+    heatNone: "Not enough data yet – the map fills with the minute values of live-watched servers (at least one hour).", heatCsvOff: "“Save history as CSV” is off – the map needs the minute values.",
+    heatNote: "The darker, the slower – relative to this server's fastest value. Based on the minute values of live-watched servers (verlauf/live-minutenwerte.csv). Shows whether a server gets busier e.g. in the evening.",
+    secPush: "Phone notifications", pushVia: "Send via", pushNtfyUrl: "ntfy topic (address)", pushRand: "Random", pushTgToken: "Bot token", pushTgChat: "Chat ID", pushWhat: "What should be reported?",
+    pushTest: "Send test", save: "Save", saved: "Saved", pushSent: "Test sent", pushOff: "Phone notifications off", pushOk: "set up · {n} sent",
+    pushC_ausfall: "Outages", pushC_kurz: "Short dropouts", pushC_dns: "DNS problems", pushC_warnung: "Tunnel degraded", pushC_wechsel: "Server switches", pushC_update: "New version",
+    pushNote: "ntfy: install the “ntfy” app and subscribe to the same topic. The topic works like a password – anyone who knows it can read along, so use a random one. Telegram: create a bot with @BotFather, message it once and enter the chat ID. Messages go through the ntfy or Telegram servers. Credentials are stored encrypted by Windows. At most one message per kind per minute.",
+    secLAN: "Phone view on the home network", lanOn: "Offer RelayPing on the home network", lanOnD: "Then RelayPing can be opened from a phone on the same Wi-Fi – via QR code.",
+    lanNew: "Create new code", lanNewOk: "New code – old phone access no longer works",
+    lanQ: "Offer RelayPing on the home network? Anyone with the QR code can view, measure and switch servers on the same network. Settings and quitting stay on the PC. Windows asks about the firewall the first time – allow “Private networks”.",
+    lanNote: "Scan the QR code with the phone camera (phone on the router's Wi-Fi). Blocked from the phone: settings, quit, router access. The home-network connection is unencrypted (http) – do not share the code. “Create new code” revokes old access.",
+    ouBlipDns: "DNS dropout ({t})",
+    connText_glinet: "Log in once with the GL.iNet admin panel password (user “root”). RelayPing then stores its own SSH key on the router – the password is never stored. RelayPing does not change router settings, except when you switch the VPN server yourself.",
+    connText_openwrt: "SSH must be enabled (default on OpenWrt). Log in once with the root password; RelayPing then stores its own SSH key – the password is never stored. RelayPing does not change router settings, except when you switch the VPN server yourself.",
+    connText_asus: "In the Asus web interface, Administration → System → “Enable SSH” must be set to “LAN only”. Log in with the web interface's user name and password. RelayPing does not change router settings, except when you switch the VPN server yourself. Asus forgets foreign keys on every restart – to make the key permanent, paste it from the RelayPing settings into the Asus web interface under “Authorized Keys”.",
+    needLogin: "The router no longer accepts RelayPing's key (on Asus after every restart unless it is entered in the Asus web interface). Please log in again once.",
+    platform: "Router type", firmware: "Firmware", pubKey: "RelayPing's SSH key", copy: "Copy", copied: "Copied to clipboard",
+    pubKeyAsus: "So RelayPing keeps working without a password after the Asus router restarts: copy the key and paste it in the Asus web interface under Administration → System → “Authorized Keys”. You do this yourself – RelayPing does not change router settings.",
+    secFritz: "FRITZ!Box", fbOn: "Query the FRITZ!Box", fbOnD: "Read only: internet connection, data rate, usage, reconnects. RelayPing changes nothing on the FRITZ!Box.",
+    fbHost: "Address", fbUser: "User (optional)", fbPass: "Password (optional)", fbSave: "Save & test", fbClear: "Delete password", fbPassSaved: "saved",
+    fbNote: "Without a password the FRITZ!Box UPnP status information is enough (Home Network → Network → Network Settings: “Transmit status information over UPnP”). With user and password RelayPing also detects restarts of the box; if the user is empty, RelayPing uses the last one logged in. The password is stored encrypted by Windows and can only be read by your Windows account.",
+    fbOk: "connected", fbViaPC: "directly from the PC", fbViaRouter: "via the router", fbOff: "off",
+    fbOnline: "online", fbOffline: "offline", fbSince: "since {d}", fbAccess: "Access", fbLine: "Line (max.)", fbConnSince: "Connected since", fbVia: "Queried", fbFw: "FRITZ!OS",
+    fbAuth: "Login", fbAuthOk: "ok", fbAuthOff: "no password", fbBoot: "Box up since", fbCompare: "Comparison",
+    fbCompareT: "FRITZ!Box {f} GB, router {r} GB this month",
+    fbCompareN: "The FRITZ!Box counts all devices in its network, the router only its own port. If the router counts much less although almost everything goes through it, its counter misses traffic (hardware offloading).",
+    acc_DSL: "DSL", acc_Ethernet: "Ethernet/fibre", "acc_X_AVM-DE_Fiber": "Fibre", "acc_X_AVM-DE_Cable": "Cable", "acc_X_AVM-DE_Mobile": "Mobile",
+    ouFritz: "FRITZ!Box without internet", ouFritzNew: "FRITZ!Box reconnected", ouFritzBoot: "FRITZ!Box restarted",
     routerAddr: "Router address", sshPort: "SSH port", user: "User", password: "Password", connect: "Connect", connecting: "Connecting …",
     connNote: "Measurements run on the router itself over the WAN link – from the PC the active tunnel would always be in between.",
     swTitle: "Switch server?", swText: "Connections through this tunnel drop for a few seconds. If the new server does not connect, RelayPing restores the previous one automatically after 35 seconds.",
@@ -601,6 +908,38 @@ const I18N = {
     quoted: "“{n}”", idle: "idle", hsIdleT: "Hardly any traffic is using this tunnel right now – an older handshake is normal then.", hsBadT: "Traffic is being sent, but no handshake for more than 3 minutes.",
     alertLossT: "Tunnel {t}: {h} is losing {v}% of packets.", alertSlowT: "Tunnel {t}: {h} takes {v} ms, {b} only {bv} ms.", alertSuggest: "Suggestion: switch to {b}.",
     notOnBoard: "{cc} is not on the leaderboard.", addToBoard: "Add", srcCache: "cache", srcApi: "Mullvad API",
+    tabGames: "Games", gmFind: "Game connection", gmScan: "Find game", gmGame: "Game", gmServer: "Server", gmVia: "Path", gmRate: "from server", gmWatchBtn: "Watch",
+    gmFindT: "Start a game (ideally a running match) and click “Find game”. The router then shows which servers your PC is playing on – detected by known game ports or regular UDP traffic.",
+   
+    gmWatch: "Watching", gmPing: "Measure ping with and without VPN", gmStop: "Stop", gmUpd: "Updates from server", gmPerSec: "/s", gmTick: "≈ {n} Hz", gmNoTick: "no common rate", gmStable: "steady", gmDrops: "Drops", gmPingTun: "Ping through tunnel {t}", gmPingDir: "Ping direct (without VPN)", gmPingDiff: "VPN costs",
+    gmNoReply: "server does not answer", gmPingHowTcp: "measured by connection setup (best of 5)", gmPingHowIcmp: "measured by ping (avg of 5)", gmDirect: "direct", gmTunnel: "tunnel {t}", gmRunning: "running since {t}", gmEnded: "ended",
+    gmWatchT: "Counts the packets the game server sends to your PC per second. For shooters this usually equals the update rate (tick rate); some games simulate faster than they send. WoW and Heroes have no fixed tick rate. The “direct” measurement runs from the router around the VPN – the game server briefly sees your real IP address.",
+    gmPingQ: "The router measures the game server once through the tunnel and once directly over the line. For the direct measurement the game server briefly sees your real IP address (only a connection setup, no data). Measure?",
+    rhTitle: "Router (24 h)", rhCpu: "CPU load", rhRam: "RAM", rhTemp: "Temperature", rhNone: "No values yet – the history fills every minute.",
+    monthRep: "Monthly report", prevMonth: "Last month", thisMonth: "This month", themeL: "Theme", thSystem: "System", thLight: "Light", thDark: "Dark",
+    updCheck: "Check for updates daily", updNow: "Check now", updLast: "last checked {t}", updNone: "RelayPing is up to date ({v})", updAvail: "New version {v} available", updInstall: "Update now", updDetails: "What's new?",
+    updQ: "RelayPing downloads version {v} from GitHub, verifies the checksum and restarts. Continue?", updManual: "Download on GitHub",
+    lkDnsVia: "DNS answered by", lkDnsRoute: "DNS path on router", lkUpstream: "AdGuard Home asks", lkDnsOther: "Your DNS queries go through {d}, your other traffic through {t}. That is not a leak – but sites with servers in several countries (videos, downloads) may send you to more distant servers.",
+    lkDnsFix: "Fix: in the GL.iNet panel under VPN → VPN Dashboard, check the DNS option in the settings (gear) of tunnel “{t}”, or set the Mullvad DNS of the default tunnel as upstream in AdGuard Home. RelayPing does not change this itself.",
+    sbDown: "↓", sbUp: "↑", sbRouter: "Router", off: "off",
+    tabLine: "Line", lnNow: "On the line right now", upl: "↑", lnNoteT: "Measured at the router's internet port (all devices together, incl. VPN overhead). Runs only while RelayPing is open.",
+    lnUsage: "Data usage", lnToday: "Today", lnMonth: "{m}", lnPrev: "Last month", lnForecast: "Month projection", lnVpn: "of which through tunnels", lnSince: "counted since {d}",
+    lnGaps: "{n}× router restart while RelayPing was off – some data may be missing. The FRITZ!Box online counter (Internet → Online Monitor) is a cross-check.",
+    lnSuspect: "Note: the router's line counter counts less than the tunnels – hardware acceleration probably bypasses it. The month total is then too low; tunnel values are correct.",
+    lnUseNote: "The router counts every byte since its last restart. RelayPing reads the counter every 10 seconds and catches up on start with what happened in between.", lnNoData: "No counter readings yet – starts with the next router poll.",
+    pcTitle: "Speed test & ping under load", pcStart: "Start test", pcRunning: "running …", pcIdle: "Measuring idle ping …", pcDown: "Download …", pcUp: "Upload …",
+    pcNote: "Measures on this PC through your default tunnel (about 25 s, up to about 2 GB depending on your line). Meanwhile the router pings through the tunnel – if the ping rises a lot under load, games and video calls stutter during big downloads.",
+    pcDownL: "Download", pcUpL: "Upload", pcPingIdle: "Ping idle", pcPingDown: "Ping during download", pcPingUp: "Ping during upload", pcGrade: "Ping under load", pcNever: "No test yet.",
+    gradeA: "excellent – barely any rise", gradeB: "good", gradeC: "noticeable – games may stutter", gradeD: "high – SQM/QoS on the router would help", pcVia: "via {t} ({h})",
+    lkTitle: "DNS leak test", lkStart: "Check", lkText: "Uses Mullvad's own connection check to see whether this PC reaches the internet via Mullvad and all DNS queries end up at Mullvad.",
+    lkExit: "Exit", lkYes: "Mullvad ✓", lkNo: "NOT Mullvad", lkDns: "DNS", lkNoLeak: "no leak – Mullvad DNS only", lkLeak: "LEAK – DNS queries don't only go to Mullvad", lkListed: "This Mullvad address is on a blocklist", lkErr: "Mullvad's check service was not reachable:",
+    ouTitle: "Outages", ouStart: "Start", ouDur: "Duration", ouWhat: "What", ouNone: "No outages recorded.", ouCount: "{n} in the last 30 days", ouOpen: "ongoing",
+    ouNote: "Every second the router pings 1.1.1.1, 9.9.9.9 and 8.8.8.8 over the line and the Mullvad gateway through each tunnel, and the PC pings the router. This lets RelayPing detect dropouts from about 2 seconds and tell where it was: internet (all three targets gone), only the tunnel, or Wi-Fi/cable between PC and router. From 30 seconds it counts as an outage. Recorded while RelayPing runs; router restarts are always detected. Also in verlauf/ausfaelle.csv.",
+    ouBlipNet: "Short internet dropout", ouBlipTun: "Short tunnel dropout {t}", ouBlipLan: "Short PC ↔ router dropout (Wi-Fi/cable)",
+    ouCount2: "{n} outages, {k} short dropouts in 30 days", ouLostIn: "{a} gone within {b}", ouTimes: "{n} dropouts in a row", sbBlips: "Dropouts today: {n}", sbBlipsT: "Last: {w} at {t} ({d} s) – details under Line → Outages",
+    blNet: "internet", blTun: "tunnel {t}", blLan: "PC ↔ router",
+    ouInternet: "Internet down", ouTunnel: "Tunnel {t} without connection", ouRouter: "Router unreachable for RelayPing", ouReboot: "Router restarted",
+    dvTitle: "Usage per device", dvLoad: "Load", dvName: "Device", dvNow: "Now", dvText: "From the router's client list (since its restart or since the device connected).", dvNoTraffic: "The router firmware doesn't report data volumes per device.",
     tabGeo: "Countries", geoTitle: "Country comparison", geoMeasure: "Measure countries", geoRunning: "Measuring … {d} of {n} servers",
     geoText: "Measures European countries except Germany (10 pings per server, bypassing the tunnel) and recommends the fastest country without a known age-check requirement for adult sites – suited to your tunnel with the domain list.",
     colCountry: "Country", colBestServer: "Best server", colPing: "Ping", colProfiles: "Profiles", colAdult: "Adult sites",
@@ -623,6 +962,7 @@ let LANG = "de";
 const t = (k, vars) => { let s = (I18N[LANG] && I18N[LANG][k]) ?? I18N.de[k] ?? k; if (vars) for (const [a, b] of Object.entries(vars)) s = s.replaceAll("{" + a + "}", b); return s; };
 const loc = () => LANG === "en" ? "en-GB" : "de-DE";
 function applyI18n() {
+  setTimeout(makeHelp, 0);
   document.documentElement.lang = LANG;
   for (const e of document.querySelectorAll("[data-i18n]")) e.textContent = t(e.dataset.i18n);
   for (const e of document.querySelectorAll("[data-i18n-ph]")) e.placeholder = t(e.dataset.i18nPh);
@@ -664,6 +1004,10 @@ function toast(msg) { const e = $("toast"); e.textContent = msg; e.hidden = fals
 
 // ---------- Zustand ----------
 let S = null, board = null, scan = null, alerts = [], sw = null, speed = null, geo = null, domList = null;
+let usage = null, outages = [], pct = null, liveRates = [], leak = null;
+let fritz = null, rtType = "glinet", dns = null, push = null, heat = null, heatHost = "", heatDays = 28;
+const LAN_CLIENT = !["127.0.0.1", "localhost"].includes(location.hostname);
+let upd = null, game = null, gameSamples = [], gameScan = null, rhist = [], monthShown = "";
 let relays = [];
 const relayBy = new Map();
 const series = new Map();
@@ -699,6 +1043,15 @@ function connectEvents() {
   });
   es.addEventListener("scan", (e) => { scan = JSON.parse(e.data); renderScan(); renderTunnels(); if (tab === "geo") renderGeo(); });
   es.addEventListener("geo", (e) => { geo = JSON.parse(e.data); if (tab === "geo") renderGeo(); });
+  es.addEventListener("usage", (e) => { usage = JSON.parse(e.data); if (tab === "line") renderUsage(); });
+  es.addEventListener("outages", (e) => { outages = JSON.parse(e.data) || []; if (tab === "line") renderOutages(); renderStatusBar(); });
+  es.addEventListener("update", (e) => { upd = JSON.parse(e.data); renderBanners(); renderSettings(); });
+  es.addEventListener("fritz", (e) => { fritz = JSON.parse(e.data); renderFritz(); renderFritzSettings(); });
+  es.addEventListener("dns", (e) => { dns = JSON.parse(e.data); renderDNS(); });
+  es.addEventListener("game", (e) => { game = JSON.parse(e.data); gameSamples = (game && game.samples) || []; if (tab === "games") renderGame(); });
+  es.addEventListener("gamesample", (e) => { const d = JSON.parse(e.data); gameSamples.push(d.sample); while (gameSamples.length > 600) gameSamples.shift(); game = Object.assign({}, game || {}, d.state); if (tab === "games") renderGame(); });
+  es.addEventListener("pctest", (e) => { pct = JSON.parse(e.data); if (tab === "line") renderPC(); });
+  es.addEventListener("live", (e) => { const r = JSON.parse(e.data); liveRates.push(r); while (liveRates.length > 300) liveRates.shift(); if (tab === "line") renderRates(); renderStatusBar(); });
   es.addEventListener("board", (e) => { board = JSON.parse(e.data); renderBoard(); renderTunnels(); if (tab === "scan") renderScan(); });
   es.addEventListener("alerts", (e) => { alerts = JSON.parse(e.data) || []; renderBanners(); });
   es.addEventListener("switch", (e) => { sw = JSON.parse(e.data); renderBanners(); renderTunnels(); });
@@ -717,11 +1070,18 @@ function renderAll() {
   if (S.relay_count && relays.length !== S.relay_count) loadRelays();
   scaleMode = S.chart_scale || "auto";
   for (const b of $("scaleSeg").querySelectorAll("button")) b.setAttribute("aria-pressed", b.dataset.v === scaleMode);
+  applyTheme(); renderStatusBar();
   renderBanners(); renderTunnels(); renderRouterBar(); renderMons(); renderFavs(); renderSettings(); renderBoard(); renderScan(); renderFooter();
 }
 
 function renderHeader() {
   const dot = $("statusDot"), txt = $("statusText");
+  if (LAN_CLIENT) { $("btnSettings").hidden = true; $("btnQuit").hidden = true; }
+  if (S.local_mode) {
+    dot.className = "dot ok"; txt.textContent = t("pcModeHead");
+    $("connectDlg").hidden = true;
+    return;
+  }
   if (S.connected) {
     dot.className = "dot ok";
     const p = [t("connected"), S.router.wan ? "WAN " + S.router.wan : t("wanMissing")];
@@ -729,11 +1089,18 @@ function renderHeader() {
     txt.textContent = p.join(" · ");
   } else if (S.has_key) { dot.className = "dot wait"; txt.textContent = S.error ? t("disconnected") + " – " + S.error : t("connectingTo") + " " + S.router_host + " …"; }
   else { dot.className = "dot bad"; txt.textContent = t("notSetUp"); }
-  $("connectDlg").hidden = S.has_key;
+  const wasHidden = $("connectDlg").hidden;
+  $("connectDlg").hidden = (S.has_key && !S.need_login) || LAN_CLIENT;
   if (!$("connectDlg").hidden) {
-    if (document.activeElement !== $("cHost")) $("cHost").value = S.router_host;
-    $("cPort").value = S.router_port; $("cUser").value = S.router_user;
-    if (S.error) { $("cErr").textContent = S.error; $("cErr").hidden = false; }
+    if (wasHidden) {
+      if (S.router.platform) rtType = S.router.platform;
+      else if (S.router_user && S.router_user !== "root") rtType = "asus";
+      setRtType(rtType, false);
+      if (document.activeElement !== $("cHost")) $("cHost").value = S.router_host;
+      $("cPort").value = S.router_port; $("cUser").value = S.router_user;
+    }
+    $("cNeed").hidden = !S.need_login;
+    if (S.error && !S.need_login) { $("cErr").textContent = S.error; $("cErr").hidden = false; }
   }
 }
 
@@ -756,6 +1123,13 @@ function alertText(a) {
 }
 function renderBanners() {
   const box = $("banners"); box.replaceChildren();
+  if (upd && upd.available) {
+    box.append(el("div", { class: "banner info" }, el("span", { class: "ic", text: "↑" }),
+      el("div", { class: "txt" }, el("b", { text: t("updAvail", { v: upd.tag }) }), upd.apply_msg ? " – " + upd.apply_msg : ""),
+      upd.url ? el("a", { class: "btn small", href: upd.url, target: "_blank", rel: "noopener" }, t("updDetails")) : null,
+      upd.can_apply ? el("button", { class: "btn small primary", disabled: !!upd.applying, onclick: () => { if (confirm(t("updQ", { v: upd.tag }))) api("/api/update/apply", {}).then(r => { upd = r; renderBanners(); }).catch(e => toast(e.message)); } }, t("updInstall"))
+        : (upd.url ? el("a", { class: "btn small primary", href: upd.url, target: "_blank", rel: "noopener" }, t("updManual")) : null)));
+  }
   if (sw && (sw.running || (sw.finished && Date.now() - new Date(sw.finished) < 60000))) {
     const kind = sw.running ? "info" : (sw.stage === "ok" ? "info" : "warn");
     const title = sw.running ? t("swRunning") : sw.stage === "ok" ? t("swOk") : sw.stage === "zurueck" ? t("swBack") : t("swFail");
@@ -1045,9 +1419,9 @@ for (const b of $("scaleSeg").querySelectorAll("button")) b.onclick = () => { sc
 for (const b of document.querySelectorAll(".tab")) b.onclick = () => {
   tab = b.dataset.tab;
   for (const x of document.querySelectorAll(".tab")) x.setAttribute("aria-selected", x === b);
-  for (const p of ["live", "board", "scan", "geo"]) $("panel-" + p).hidden = p !== tab;
+  for (const p of ["live", "board", "scan", "geo", "line", "games"]) $("panel-" + p).hidden = p !== tab;
   try { localStorage.setItem("rp-tab", tab); } catch {}
-  if (tab === "board") renderBoard(); else if (tab === "scan") renderScan(); else if (tab === "geo") { renderGeo(); loadDomainList(); }
+  if (tab === "board") renderBoard(); else if (tab === "scan") renderScan(); else if (tab === "geo") { renderGeo(); loadDomainList(); } else if (tab === "line") { renderLine(); loadRouterHist(); } else if (tab === "games") renderGame();
 };
 
 // ---------- Länderauswahl ----------
@@ -1204,6 +1578,268 @@ for (const th of document.querySelectorAll("#scanTable th[data-k]")) th.onclick 
 
 // ---------- Wechsel ----------
 let swPending = null;
+// ---------- Design, Statusleiste, Hilfe ----------
+function applyTheme() {
+  const th = (S && S.theme) || "system";
+  if (th === "hell") document.documentElement.dataset.theme = "light";
+  else if (th === "dunkel") document.documentElement.dataset.theme = "dark";
+  else delete document.documentElement.dataset.theme;
+}
+function renderStatusBar() {
+  const box = $("statusbar"); if (!box || !S) return;
+  box.replaceChildren();
+  const h = S.health || { items: [] };
+  for (const it of h.items || []) {
+    const lab = it.key === "internet" ? "Internet" : it.key === "router" ? t("sbRouter") : (it.label || "");
+    const val = it.text ? it.text : it.ping ? fmt(it.ping) + " ms" : "";
+    box.append(el("span", { class: "sb", title: it.host || "" }, el("span", { class: "d l" + it.level }), el("b", { text: lab }), val ? el("span", { class: "num", text: val }) : null));
+  }
+  const last = liveRates[liveRates.length - 1];
+  if (last && Date.now() - last.t < 5000) box.append(el("span", { class: "sb num" }, `${t("sbDown")} ${mbit(last.down)}  ${t("sbUp")} ${mbit(last.up)} Mbit/s`));
+  const day0 = new Date(); day0.setHours(0, 0, 0, 0);
+  const bl = (outages || []).filter(o => o.kind.startsWith("kurz-") && o.start * 1000 >= day0.getTime());
+  if (bl.length) {
+    const lb = bl[0], w = lb.kind === "kurz-internet" ? t("blNet") : lb.kind === "kurz-tunnel" ? t("blTun", { t: lb.target }) : t("blLan");
+    const chip = el("button", { class: "sb", type: "button", style: "cursor:pointer;font:inherit", title: t("sbBlipsT", { w, t: new Date(lb.start * 1000).toLocaleTimeString(loc()), d: lb.end - lb.start }) },
+      el("span", { class: "d l1" }), el("span", { text: t("sbBlips", { n: bl.length }) }));
+    chip.onclick = () => document.querySelector('.tab[data-tab="line"]').click();
+    box.append(chip);
+  }
+}
+function makeHelp() {
+  for (const p of document.querySelectorAll("p.note[data-i18n], p.geo-note[data-i18n]")) {
+    if (p.dataset.help) continue;
+    p.dataset.help = "1"; p.hidden = true;
+    const card = p.closest(".card, .dialog") || p.parentElement;
+    const head = card.querySelector("h3, .geo-head, h2");
+    const btn = el("button", { class: "info-btn", type: "button", "aria-expanded": "false", title: "Info" }, "i");
+    btn.onclick = () => { p.hidden = !p.hidden; btn.setAttribute("aria-expanded", String(!p.hidden)); };
+    if (head) { const sp = head.querySelector(".spacer"); if (sp) head.insertBefore(btn, sp); else head.append(btn); }
+    else p.before(btn);
+  }
+}
+
+// ---------- Router-Verlauf ----------
+async function loadRouterHist() {
+  try { rhist = await fetch("/api/routerhist").then(r => r.json()) || []; } catch { rhist = []; }
+  renderRouterHist();
+}
+function renderRouterHist() {
+  const box = $("rhBody"); if (!box) return; box.replaceChildren();
+  if (!rhist.length) { box.append(el("p", { class: "muted", text: t("rhNone") })); return; }
+  const NS = "http://www.w3.org/2000/svg";
+  for (const [key, lab, unit, col] of [["cpu", t("rhCpu"), " %", "--s1"], ["ram", t("rhRam"), " %", "--s3"], ["temp", t("rhTemp"), " °C", "--s2"]]) {
+    const vals = rhist.map(p => p[key]).filter(v => v != null && v >= 0);
+    if (!vals.length || (key === "temp" && Math.max(...vals) === 0)) continue;
+    const cur = vals[vals.length - 1], mx = Math.max(...vals), mn = Math.min(...vals);
+    const card = el("div", {}, el("div", { class: "muted", style: "font-size:12px" }, lab + " · ", el("b", { class: "num", style: "color:var(--ink)", text: fmt(cur, 0) + unit }), ` (${fmt(mn, 0)}–${fmt(mx, 0)}${unit})`));
+    const svg = document.createElementNS(NS, "svg"); svg.setAttribute("style", "height:60px;width:100%;display:block;margin-top:4px");
+    card.append(svg); box.append(card);
+    const W = Math.max(150, svg.clientWidth || 300), H = 60; svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+    const t0 = rhist[0].t, t1 = rhist[rhist.length - 1].t, span = Math.max(60, t1 - t0);
+    const hi = key === "temp" ? Math.max(mx + 2, mn + 10) : Math.max(100, mx), lo = key === "temp" ? Math.max(0, mn - 5) : 0;
+    const pts = rhist.filter(p => p[key] >= 0).map(p => `${((p.t - t0) / span * (W - 2) + 1).toFixed(1)},${(H - 2 - (p[key] - lo) / (hi - lo) * (H - 6)).toFixed(1)}`).join(" ");
+    const pl = document.createElementNS(NS, "polyline"); pl.setAttribute("points", pts); pl.setAttribute("fill", "none"); pl.setAttribute("stroke", css(col)); pl.setAttribute("stroke-width", "1.6"); svg.append(pl);
+  }
+  $("rhInfo").textContent = rhist.length ? new Date(rhist[0].t * 1000).toLocaleTimeString(loc(), { hour: "2-digit", minute: "2-digit" }) + " – " + new Date(rhist[rhist.length - 1].t * 1000).toLocaleTimeString(loc(), { hour: "2-digit", minute: "2-digit" }) : "";
+}
+
+// ---------- Spiele ----------
+function renderGameScan() {
+  const tb = $("gmBody"); tb.replaceChildren();
+  const g = gameScan; const note = $("gmScanNote"); note.replaceChildren();
+  if (!g) return;
+  if (g.note) note.append(el("p", { class: "note warn", text: g.note }));
+  $("gmTable").hidden = !(g.flows && g.flows.length);
+  for (const f of g.flows || []) tb.append(el("tr", {},
+    el("td", { text: f.game }),
+    el("td", { class: "num", text: `${f.server}:${f.sport} (${f.proto.toUpperCase()})` }),
+    el("td", { text: f.via === "direkt" ? t("gmDirect") : t("gmTunnel", { t: t("quoted", { n: f.via }) }) }),
+    el("td", { class: "r num", text: f.rate_in ? fmt(f.rate_in, 0) + t("gmPerSec") : "–" }),
+    el("td", { class: "r" }, el("button", { class: "btn small primary", onclick: () => { gameSamples = []; api("/api/games/watch", f).then(r => { game = r; renderGame(); }).catch(e => toast(e.message)); } }, t("gmWatchBtn")))));
+}
+function renderGame() {
+  renderGameScan();
+  const card = $("gmWatchCard"), g = game;
+  if (!g || !g.flow || !g.flow.server) { card.hidden = true; return; }
+  card.hidden = false;
+  $("btnGmStop").disabled = !g.running;
+  $("gmWatchInfo").textContent = `${g.flow.game || ""} · ${g.flow.server}:${g.flow.sport} · ` + (g.running ? t("gmRunning", { t: timeStr(g.started * 1000) }) : t("gmEnded"));
+  const big = $("gmBig"); big.replaceChildren();
+  big.append(el("div", { class: "rate" }, el("div", { class: "k", text: t("gmUpd") }), el("span", { class: "v num", text: g.median ? fmt(g.median, 0) : "–" }), el("span", { class: "u", text: t("gmPerSec") }), " ",
+    g.median ? el("span", { class: "hz", text: g.tick ? t("gmTick", { n: g.tick }) : t("gmNoTick") }) : null));
+  big.append(el("div", { class: "rate" }, el("div", { class: "k", text: t("gmStable") }), el("span", { class: "v num", text: g.median ? fmt(g.stable, 0) : "–" }), el("span", { class: "u", text: "%" })));
+  big.append(el("div", { class: "rate" }, el("div", { class: "k", text: t("gmDrops") }), el("span", { class: "v num", text: g.median ? String(g.drops) : "–" })));
+  // Diagramm Pakete/s
+  const svg = $("gmChart"), NS = "http://www.w3.org/2000/svg"; svg.replaceChildren();
+  const W = Math.max(200, svg.clientWidth || 600), H = 120; svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+  const data = gameSamples.slice(-180);
+  const mx = Math.max(10, ...data.map(d => d.in)) * 1.15;
+  if (g.median) { const y = H - 4 - g.median / mx * (H - 10); const ln = document.createElementNS(NS, "line"); ln.setAttribute("x1", 0); ln.setAttribute("x2", W); ln.setAttribute("y1", y); ln.setAttribute("y2", y); ln.setAttribute("stroke", css("--muted")); ln.setAttribute("stroke-dasharray", "4 4"); svg.append(ln); }
+  const bw = W / 180;
+  data.forEach((d, i) => { const x = W - (data.length - i) * bw; const h = d.in / mx * (H - 10); const r = document.createElementNS(NS, "rect"); r.setAttribute("x", x); r.setAttribute("y", H - 4 - h); r.setAttribute("width", Math.max(1, bw - 0.5)); r.setAttribute("height", Math.max(0, h)); r.setAttribute("fill", d.in < g.median * 0.5 ? css("--critical") : css("--s1")); svg.append(r); });
+  const kv = $("gmKv"); kv.replaceChildren();
+  const pv = (v) => v === -2 ? "–" : v < 0 ? t("gmNoReply") : fmt(v) + " ms";
+  if (g.ping_at) {
+    kv.append(el("span", { class: "k", text: t("gmPingTun", { t: "" }) }), el("span", { class: "num", text: pv(g.ping_tunnel) }));
+    kv.append(el("span", { class: "k", text: t("gmPingDir") }), el("span", { class: "num", text: pv(g.ping_direct) }));
+    if (g.ping_tunnel > 0 && g.ping_direct > 0) kv.append(el("span", { class: "k", text: t("gmPingDiff") }), el("b", { class: "num", text: (g.ping_tunnel - g.ping_direct >= 0 ? "+" : "") + fmt(g.ping_tunnel - g.ping_direct) + " ms" }));
+    kv.append(el("span", { class: "k", text: "" }), el("span", { class: "muted", style: "font-size:12px", text: (g.ping_how === "tcp" ? t("gmPingHowTcp") : t("gmPingHowIcmp")) + " · " + whenStr(g.ping_at * 1000) }));
+  }
+  $("gmNote").hidden = !g.note; $("gmNote").textContent = g.note || "";
+}
+async function showMonth(m) {
+  try {
+    const r = await fetch("/api/month" + (m ? "?m=" + m : "")).then(x => x.json());
+    $("repText").textContent = r.text; $("repDlg").hidden = false; monthShown = r.month;
+    $("repPrev").hidden = false;
+    $("repPrev").textContent = r.abgeschlossen ? t("thisMonth") : t("prevMonth");
+  } catch (e) { toast(e.message); }
+}
+
+// ---------- Leitung ----------
+const gbStr = (b, d = 1) => fmt((b || 0) / 1e9, d);
+const mbit = (bps) => bps == null ? "–" : fmt(bps / 1e6, bps >= 1e8 ? 0 : 1);
+function renderLine() { renderRates(); renderUsage(); renderPC(); renderLeak(); renderOutages(); renderFritz(); renderDNS(); loadHeat(); }
+function renderRates() {
+  const last = liveRates[liveRates.length - 1];
+  $("lnDown").textContent = last ? mbit(last.down) : "–";
+  $("lnUp").textContent = last ? mbit(last.up) : "–";
+  $("lnWan").textContent = S && S.router && S.router.wan ? "WAN " + S.router.wan : "";
+  const svg = $("lnChart"), NS = "http://www.w3.org/2000/svg"; svg.replaceChildren();
+  const W = Math.max(200, svg.clientWidth || 600), H = 110, n = 300; svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+  const max = Math.max(1e6, ...liveRates.map(r => Math.max(r.down, r.up)));
+  const grid = document.createElementNS(NS, "line"); grid.setAttribute("x1", 0); grid.setAttribute("x2", W); grid.setAttribute("y1", H - 1); grid.setAttribute("y2", H - 1); grid.setAttribute("stroke", css("--border")); svg.append(grid);
+  const lbl = document.createElementNS(NS, "text"); lbl.setAttribute("x", 4); lbl.setAttribute("y", 12); lbl.setAttribute("font-size", 11); lbl.setAttribute("fill", css("--muted")); lbl.textContent = mbit(max) + " Mbit/s"; svg.append(lbl);
+  for (const [key, col] of [["down", css("--s1")], ["up", css("--s2") || css("--accent")]]) {
+    const pts = liveRates.map((r, i) => `${(W - (liveRates.length - 1 - i) * W / (n - 1)).toFixed(1)},${(H - 2 - r[key] / max * (H - 18)).toFixed(1)}`).join(" ");
+    if (!pts) continue;
+    const pl = document.createElementNS(NS, "polyline"); pl.setAttribute("points", pts); pl.setAttribute("fill", "none"); pl.setAttribute("stroke", col); pl.setAttribute("stroke-width", "1.8"); pl.setAttribute("vector-effect", "non-scaling-stroke"); svg.append(pl);
+  }
+  const tb = $("lnTun"); tb.replaceChildren();
+  if (last && S && S.router) for (const tn of S.router.tunnels || []) {
+    const d = (last.tunnels || {})[tn.iface], u = (last.tunnels_up || {})[tn.iface];
+    tb.append(el("span", { class: "k", text: `${t("tunnel")} ${tn.name ? t("quoted", { n: tn.name }) : tn.iface}` }), el("span", { class: "num", text: `↓ ${mbit(d)}  ↑ ${mbit(u)} Mbit/s` }));
+  }
+}
+function renderUsage() {
+  const u = usage; if (!u) return;
+  const month = new Date().toLocaleDateString(loc(), { month: "long" });
+  $("lnMonthK").textContent = month;
+  $("lnTodayV").textContent = u.have_counter ? gbStr(u.today.rx + u.today.tx) : "–";
+  $("lnMonthV").textContent = u.have_counter ? gbStr(u.month.rx + u.month.tx, u.month.rx + u.month.tx < 1e10 ? 1 : 0) : "–";
+  $("lnSince").textContent = u.since ? t("lnSince", { d: new Date(u.since * 1000).toLocaleDateString(loc()) }) : "";
+  const kv = $("lnUseKv"); kv.replaceChildren();
+  const row = (k, v) => kv.append(el("span", { class: "k", text: k }), el("span", { class: "num", text: v }));
+  if (u.have_counter) {
+    row("↓ / ↑ " + month, `${gbStr(u.month.rx)} / ${gbStr(u.month.tx)} GB`);
+    row(t("lnVpn"), `${gbStr(u.month.vpn_rx + u.month.vpn_tx)} GB`);
+    if (u.forecast) row(t("lnForecast"), `≈ ${gbStr(u.forecast, 0)} GB`);
+    if (u.prev_month.rx + u.prev_month.tx > 0) row(t("lnPrev"), `${gbStr(u.prev_month.rx + u.prev_month.tx, 0)} GB`);
+  }
+  const notes = [];
+  if (!u.have_counter) notes.push(t("lnNoData"));
+  if (u.counter_suspect) notes.push(t("lnSuspect"));
+  if (u.gaps > 0) notes.push(t("lnGaps", { n: u.gaps }));
+  notes.push(t("lnUseNote"));
+  $("lnUseNote").textContent = notes.join(" ");
+  $("lnUseNote").className = "note" + (u.counter_suspect ? " warn" : "");
+  // Balken je Tag im Monat
+  const svg = $("lnBars"), NS = "http://www.w3.org/2000/svg"; svg.replaceChildren();
+  const now = new Date(), dim = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+  const byDay = new Map((u.days || []).map(d => [Number(d.day.slice(8)), d]));
+  const max = Math.max(1e8, ...(u.days || []).map(d => d.rx + d.tx));
+  const W = Math.max(200, svg.clientWidth || 600), H = 120, bw = W / dim; svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+  for (let i = 1; i <= dim; i++) {
+    const d = byDay.get(i); const x = (i - 1) * bw;
+    const tot = d ? d.rx + d.tx : 0, vpn = d ? Math.min(tot, d.vpn_rx + d.vpn_tx) : 0;
+    const h = tot / max * (H - 16), hv = vpn / max * (H - 16);
+    const r1 = document.createElementNS(NS, "rect"); r1.setAttribute("x", x + 1); r1.setAttribute("width", Math.max(1, bw - 2)); r1.setAttribute("y", H - 12 - h); r1.setAttribute("height", Math.max(0, h)); r1.setAttribute("fill", css("--s1")); r1.setAttribute("opacity", "0.35");
+    const t1 = document.createElementNS(NS, "title"); t1.textContent = `${i}.: ${gbStr(tot, 2)} GB`; r1.append(t1); svg.append(r1);
+    const r2 = document.createElementNS(NS, "rect"); r2.setAttribute("x", x + 1); r2.setAttribute("width", Math.max(1, bw - 2)); r2.setAttribute("y", H - 12 - hv); r2.setAttribute("height", Math.max(0, hv)); r2.setAttribute("fill", css("--s1")); r2.append(t1.cloneNode(true)); svg.append(r2);
+    if (i === 1 || i % 5 === 0) { const tx = document.createElementNS(NS, "text"); tx.setAttribute("x", x + bw / 2); tx.setAttribute("y", H - 1); tx.setAttribute("font-size", 10); tx.setAttribute("text-anchor", "middle"); tx.setAttribute("fill", css("--muted")); tx.textContent = i; svg.append(tx); }
+    if (i === now.getDate()) { const m = document.createElementNS(NS, "rect"); m.setAttribute("x", x + 1); m.setAttribute("width", Math.max(1, bw - 2)); m.setAttribute("y", H - 12); m.setAttribute("height", 2); m.setAttribute("fill", css("--accent")); svg.append(m); }
+  }
+}
+function renderPC() {
+  const box = $("pcBody"); box.replaceChildren();
+  const p = pct;
+  $("btnPC").disabled = !!(p && p.running);
+  if (!p || (!p.running && !p.finished) || (p.finished && p.finished.startsWith("0001"))) { box.append(el("p", { class: "muted", text: t("pcNever") })); return; }
+  if (p.running) {
+    const lab = { leerlauf: t("pcIdle"), download: t("pcDown"), upload: t("pcUp") }[p.stage] || t("pcRunning");
+    const pctv = p.stage_secs ? Math.min(100, (p.elapsed || 0) / p.stage_secs * 100) : 0;
+    box.append(el("div", { class: "rates" }, el("div", { class: "rate" }, el("div", { class: "k", text: lab }), el("span", { class: "v num", text: p.mbps ? fmt(p.mbps, 0) : "…" }), el("span", { class: "u", text: "Mbit/s" }))),
+      el("div", { class: "speedbar", style: "width:100%;margin-top:10px" }, el("i", { style: `width:${p.stage === "leerlauf" ? 100 : pctv}%` })));
+    return;
+  }
+  if (p.error) { box.append(el("p", { class: "note warn", text: p.error })); return; }
+  box.append(el("div", { class: "rates" },
+    el("div", { class: "rate" }, el("div", { class: "k", text: "↓ " + t("pcDownL") }), el("span", { class: "v num", text: fmt(p.down, 0) }), el("span", { class: "u", text: "Mbit/s" })),
+    el("div", { class: "rate" }, el("div", { class: "k", text: "↑ " + t("pcUpL") }), el("span", { class: "v num", text: fmt(p.up, 0) }), el("span", { class: "u", text: "Mbit/s" }))));
+  const kv = el("div", { class: "kv2" });
+  const ps = (s) => s && s.n ? `${fmt(s.median)} ms (95 % < ${fmt(s.p95)} ms${s.loss ? ", " + t("loss") + " " + fmt(s.loss, 0) + " %" : ""})` : "–";
+  kv.append(el("span", { class: "k", text: t("pcPingIdle") }), el("span", { class: "num", text: ps(p.idle) }),
+    el("span", { class: "k", text: t("pcPingDown") }), el("span", { class: "num", text: ps(p.load_down) }),
+    el("span", { class: "k", text: t("pcPingUp") }), el("span", { class: "num", text: ps(p.load_up) }));
+  if (p.grade) kv.append(el("span", { class: "k", text: t("pcGrade") }), el("span", {}, el("span", { class: "grade " + p.grade, text: p.grade }), " ", t("grade" + p.grade)));
+  box.append(kv);
+  box.append(el("p", { class: "muted", style: "font-size:12px;margin-top:8px", text: (p.host ? t("pcVia", { t: t("quoted", { n: p.tunnel }), h: p.host }) + " · " : "") + whenStr(p.finished) + (p.ping_note ? " · " + p.ping_note : "") }));
+}
+function renderLeak() {
+  if (!leak) return;
+  const box = $("lkBody"); box.replaceChildren();
+  if (leak.error) { box.append(el("p", { class: "note warn", text: t("lkErr") + " " + leak.error })); return; }
+  const kv = el("div", { class: "kv2" });
+  kv.append(el("span", { class: "k", text: t("lkExit") }), el("span", {}, el("span", { class: "st " + (leak.mullvad_exit ? "ok" : "bad"), text: leak.mullvad_exit ? t("lkYes") : t("lkNo") }), " ", `${leak.exit_host || ""} · ${leak.ip} · ${leak.city}, ${leak.country}`));
+  kv.append(el("span", { class: "k", text: t("lkDns") }), el("span", {}, el("span", { class: "st " + (!leak.dns_checked ? "na" : leak.dns_leak ? "bad" : "ok"), text: !leak.dns_checked ? "?" : leak.dns_leak ? t("lkLeak") : t("lkNoLeak") })));
+  box.append(kv);
+  for (const d of leak.dns || []) box.append(el("p", { class: "muted", style: "font-size:12px;margin:6px 0 0", text: d }));
+  if (leak.blacklisted) box.append(el("p", { class: "note warn", text: t("lkListed") }));
+  const kv2 = el("div", { class: "kv2" });
+  if (leak.dns_host) kv2.append(el("span", { class: "k", text: t("lkDnsVia") }), el("span", { class: "num", text: leak.dns_host }));
+  if (leak.dns_tunnel) kv2.append(el("span", { class: "k", text: t("lkDnsRoute") }), el("span", { text: leak.dns_tunnel }));
+  if (leak.upstreams && leak.upstreams.length) kv2.append(el("span", { class: "k", text: t("lkUpstream") }), el("span", { class: "num", style: "font-size:12.5px", text: leak.upstreams.join(", ") }));
+  if (kv2.childNodes.length) box.append(kv2);
+  if (leak.dns_other_tunnel) {
+    const tn = (leak.dns_tunnel || "").replace(/ \(.*$/, "");
+    box.append(el("p", { class: "note warn", text: t("lkDnsOther", { d: leak.dns_host + (leak.dns_tunnel ? " / " + leak.dns_tunnel : ""), t: leak.traffic_host }) }),
+      el("p", { class: "note", text: t("lkDnsFix", { t: tn || leak.dns_host }) }));
+  }
+  box.append(el("p", { class: "muted", style: "font-size:12px;margin-top:8px", text: whenStr(leak.checked * 1000) }));
+}
+function renderOutages() {
+  const tb = $("ouBody"); tb.replaceChildren();
+  const cut = Date.now() / 1000 - 30 * 86400;
+  const list = (outages || []).filter(o => o.start >= cut);
+  $("ouInfo").textContent = t("ouCount2", { n: list.filter(o => !isEvt(o) && !isBlip(o)).length, k: list.filter(isBlip).length });
+  if (!list.length) { tb.append(el("tr", {}, el("td", { colspan: 3, class: "muted", text: t("ouNone") }))); return; }
+  const durS = (s) => s < 90 ? s + " s" : s < 5400 ? Math.round(s / 60) + " min" : fmt(s / 3600, 1) + " h";
+  for (const o of list.slice(0, 100)) {
+    const what = { internet: t("ouInternet"), tunnel: t("ouTunnel", { t: o.target }), router: t("ouRouter"), neustart: t("ouReboot"), fritz: t("ouFritz"), "fritz-neu": t("ouFritzNew"), "fritz-neustart": t("ouFritzBoot"),
+      "kurz-internet": t("ouBlipNet"), "kurz-tunnel": t("ouBlipTun", { t: o.target }), "kurz-lan": t("ouBlipLan"), "kurz-dns": t("ouBlipDns", { t: o.target }) }[o.kind] || o.kind;
+    tb.append(el("tr", {},
+      el("td", { class: "num", text: new Date(o.start * 1000).toLocaleString(loc(), isBlip(o) ? { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit", second: "2-digit" } : { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }) }),
+      el("td", { class: "num", text: isEvt(o) ? "–" : o.count > 1 ? t("ouLostIn", { a: durS(o.lost), b: durS(o.end - o.start) }) : o.end ? durS(o.end - o.start) : t("ouOpen") }),
+      el("td", {}, el("span", { class: "st " + (isEvt(o) ? "na" : o.end ? "mid" : "bad"), style: "white-space:normal;display:inline-block", text: what + (o.count > 1 ? " · " + t("ouTimes", { n: o.count }) : "") }), o.note ? el("span", { class: "muted", style: "font-size:12px", text: " " + o.note }) : null)));
+  }
+}
+async function loadDevices() {
+  try {
+    const r = await fetch("/api/devices").then(x => x.json());
+    if (r.error) { $("dvNote").textContent = r.error; return; }
+    const tb = $("dvBody"); tb.replaceChildren();
+    for (const d of r.devices || []) tb.append(el("tr", {},
+      el("td", {}, el("span", { class: "dot " + (d.online ? "ok" : ""), style: "display:inline-block;margin-right:8px" }), d.name),
+      el("td", { class: "num muted", text: d.ip || "" }),
+      el("td", { class: "r num", text: r.has_traffic ? gbStr(d.rx, 2) + " GB" : "–" }),
+      el("td", { class: "r num", text: r.has_traffic ? gbStr(d.tx, 2) + " GB" : "–" }),
+      el("td", { class: "r num muted", text: d.rx_rate || d.tx_rate ? `↓ ${rate(d.rx_rate)} ↑ ${rate(d.tx_rate)}` : "" })));
+    $("dvTable").hidden = false;
+    $("dvNote").textContent = r.has_traffic ? t("dvText") : t("dvNoTraffic");
+  } catch (e) { toast(e.message); }
+}
+
 // ---------- Länder ----------
 const stClass = { frei: "ok", pflicht: "bad", teilweise: "mid", geplant: "mid" };
 const stLabel = (s) => t({ frei: "stFrei", pflicht: "stPflicht", teilweise: "stTeilweise", geplant: "stGeplant" }[s] || "stUnbekannt");
@@ -1284,6 +1920,24 @@ $("swGo").onclick = async () => {
 };
 
 // ---------- Verbinden, Einstellungen ----------
+const RT_DEF = { glinet: ["192.168.8.1", "root"], openwrt: ["192.168.1.1", "root"], asus: ["192.168.50.1", "admin"] };
+$("btnLocalOn") && ($("btnLocalOn").onclick = async () => { try { S = await api("/api/localmode", { on: true }); $("connectDlg").hidden = true; renderAll(); toast(t("pcModeOn")); } catch (e) { toast(e.message); } });
+function setRtType(v, fill) {
+  rtType = RT_DEF[v] || v === "pc" ? v : "glinet";
+  for (const b of $("rtSeg").querySelectorAll("button")) b.setAttribute("aria-pressed", b.dataset.v === rtType);
+  $("cText").textContent = t("connText_" + rtType);
+  const pc = rtType === "pc";
+  $("cPC").hidden = !pc; $("cRouterRow").hidden = pc; $("cPass").hidden = pc; $("cBtn").hidden = pc;
+  for (const l of document.querySelectorAll('label[for="cPass"]')) l.hidden = pc;
+  if (pc) return;
+  if (fill) {
+    const isDef = (h) => Object.values(RT_DEF).some(d => d[0] === h);
+    if (!$("cHost").value || isDef($("cHost").value.trim())) $("cHost").value = RT_DEF[rtType][0];
+    const u = $("cUser").value.trim();
+    if (!u || u === "root" || u === "admin") $("cUser").value = RT_DEF[rtType][1];
+  }
+}
+for (const b of $("rtSeg").querySelectorAll("button")) b.onclick = () => setRtType(b.dataset.v, true);
 $("connectForm").onsubmit = async (e) => {
   e.preventDefault(); $("cErr").hidden = true; $("cBtn").disabled = true; $("cBtn").textContent = t("connecting");
   try { await api("/api/connect", { host: $("cHost").value.trim(), port: +$("cPort").value || 22, user: $("cUser").value.trim() || "root", password: $("cPass").value }); $("cPass").value = ""; $("connectDlg").hidden = true; toast(t("keyInstalled")); }
@@ -1293,12 +1947,17 @@ $("connectForm").onsubmit = async (e) => {
 function renderSettings() {
   if (!S) return;
   for (const b of $("langSeg").querySelectorAll("button")) b.setAttribute("aria-pressed", b.dataset.v === LANG);
+  for (const b of $("themeSeg").querySelectorAll("button")) b.setAttribute("aria-pressed", b.dataset.v === (S.theme || "system"));
+  $("setUpdate").checked = S.update_check !== false;
+  $("updInfo").textContent = upd ? (upd.available ? t("updAvail", { v: upd.tag }) : t("updNone", { v: S.version })) + (upd.checked && !upd.checked.startsWith("0001") ? " · " + t("updLast", { t: whenStr(upd.checked) }) : "") + (upd.error ? " · " + upd.error : "") : "";
   $("autostartRow").hidden = S.autostart == null; if (S.autostart != null) $("setAutostart").checked = S.autostart;
   $("setAlerts").checked = !!S.alerts; $("setAlertLoss").value = String(S.alert_loss); $("setAlertExtra").value = String(S.alert_extra_ms);
   $("setAutoScan").value = String(S.auto_scan_min || 0);
   const kv = $("setKv"); kv.replaceChildren();
   const add = (k, v, mono) => kv.append(el("span", { class: "k", text: k }), el("span", { class: mono ? "mono" : "", text: v }));
   add(t("router"), `${S.router_user}@${S.router_host}:${S.router_port}`);
+  if (S.router.platform) add(t("platform"), { glinet: "GL.iNet", openwrt: "OpenWrt", asus: "Asus" }[S.router.platform] + (S.router.model ? " · " + S.router.model : ""));
+  if (S.router.firmware) add(t("firmware"), S.router.firmware);
   add(t("connVia"), S.connected ? t("connKey") : (S.has_key ? t("disconnected") : t("notSetUp")));
   add(t("wanIf"), S.router.wan || t("notDetected"));
   add(t("fastPing"), S.router.fastping ? t("yesFast") : t("noFast"));
@@ -1306,6 +1965,240 @@ function renderSettings() {
   if (S.fingerprint) add(t("fp"), S.fingerprint, true);
   add(t("dataDir"), S.data_dir, true);
   add(t("version"), S.version);
+  $("setKey").hidden = !S.pubkey;
+  $("setLocal").checked = !!S.local_mode;
+  renderFritzSettings(); renderPush();
+  if (!$("setDlg").hidden) { renderLAN(); loadPush(); }
+}
+function loadPush() { if (!LAN_CLIENT) fetch("/api/push").then(r => r.ok ? r.json() : null).then(p => { if (p) { push = p; pushMode = null; renderPush(); } }).catch(() => {}); }
+function renderFritzSettings() {
+  if (!S) return;
+  const f = fritz || { enabled: S.fritz };
+  $("fbOn").checked = !!f.enabled;
+  $("fbFields").hidden = !f.enabled;
+  if (document.activeElement !== $("fbHost") && f.host) $("fbHost").value = f.host;
+  if (document.activeElement !== $("fbUser") && f.user != null && !$("fbUser").dataset.dirty) $("fbUser").value = f.user || "";
+  $("fbPass").placeholder = f.has_pass ? "•••••• (" + t("fbPassSaved") + ")" : "";
+  $("btnFbClear").hidden = !f.has_pass;
+  const st = $("fbState");
+  if (!f.enabled) st.textContent = "";
+  else if (f.ok) st.textContent = "✓ " + t("fbOk") + (f.via ? " (" + (f.via === "router" ? t("fbViaRouter") : t("fbViaPC")) + ")" : "") + (f.model ? " · " + f.model : "");
+  else if (f.error) st.textContent = "✗ " + f.error;
+  else st.textContent = "…";
+}
+$("btnCopyKey").onclick = async () => { try { await navigator.clipboard.writeText(S.pubkey); toast(t("copied")); } catch (e) { toast(e.message); } };
+$("fbUser").oninput = () => { $("fbUser").dataset.dirty = "1"; };
+const fritzSave = async (extra) => {
+  const body = Object.assign({ on: $("fbOn").checked, host: $("fbHost").value.trim() || "192.168.178.1", user: $("fbUser").value.trim(), password: $("fbPass").value, keep_password: !$("fbPass").value }, extra || {});
+  $("fbState").textContent = "…";
+  try { fritz = await api("/api/fritz/settings", body); $("fbPass").value = ""; delete $("fbUser").dataset.dirty; renderFritzSettings(); renderFritz(); }
+  catch (e) { $("fbState").textContent = "✗ " + e.message; }
+};
+$("fbOn").onchange = () => { $("fbFields").hidden = !$("fbOn").checked; fritzSave(); };
+$("btnFbSave").onclick = () => fritzSave();
+$("btnFbClear").onclick = () => fritzSave({ password: "", keep_password: false });
+
+const isBlip = (o) => o.kind.startsWith("kurz-");
+
+// ---------- Hover-Tooltip ----------
+let tipEl = null;
+function showTip(ev, text) {
+  if (!tipEl) { tipEl = el("div", { class: "tip" }); document.body.append(tipEl); }
+  tipEl.textContent = text; tipEl.hidden = false;
+  const x = Math.min(ev.clientX + 12, window.innerWidth - tipEl.offsetWidth - 8), y = ev.clientY + 14;
+  tipEl.style.left = x + "px"; tipEl.style.top = y + "px";
+}
+function hideTip() { if (tipEl) tipEl.hidden = true; }
+
+// ---------- DNS-Wächter ----------
+const dnsCode = (r) => !r || !r.code ? "–" : r.code === "ok" ? fmt(r.ms, 0) + " ms" : t("dnsC_" + r.code) + (r.ms ? " · " + fmt(r.ms / 1000, 1) + " s" : "");
+const dnsBad = (r, rnd) => r && r.code && r.code !== "ok" && !(rnd && r.code === "nxdomain");
+function renderDNS() {
+  if (!$("dnsCard")) return;
+  const d = dns; if (!d) return;
+  if (document.activeElement !== $("dnsIv")) $("dnsIv").value = String(d.interval || 0);
+  $("dnsInfo").textContent = d.interval ? t("dnsEvery", { s: d.interval >= 60 ? (d.interval / 60) + " min" : d.interval + " s" }) : t("off");
+  const kv = $("dnsKv"); kv.replaceChildren();
+  const row = (k, v) => kv.append(el("span", { class: "k", text: k }), el("span", { class: "num", text: v }));
+  if (d.checks) {
+    row(t("dnsRouter") + " (" + (d.server || "?") + ")", t("dnsStat", { b: d.router_bad, n: d.checks, m: fmt(d.router_med, 0) }));
+    row("Mullvad-DNS (10.64.0.1)", d.direct_ok ? t("dnsStat", { b: d.direct_bad, n: d.checks, m: fmt(d.direct_med, 0) }) : t("dnsNoDirect"));
+  } else row(t("dnsRouter"), d.interval ? t("dnsWait") : t("dnsOffT"));
+  const strip = $("dnsStrip"); strip.replaceChildren();
+  for (const c of d.recent || []) {
+    const bad = dnsBad(c.router, c.zufall), slow = c.router && c.router.code === "langsam";
+    const i = el("i", { class: bad ? (slow ? "slow" : "bad") : "" });
+    const txt = `${timeStr(c.t * 1000)} · ${c.zufall ? t("dnsRandom") : c.name} · ${t("dnsRouter")}: ${dnsCode(c.router)} · Mullvad: ${dnsCode(c.direkt)}`;
+    i.onmousemove = (ev) => showTip(ev, txt); i.onmouseleave = hideTip; i.title = txt;
+    strip.append(i);
+  }
+  const tb = $("dnsBody"); tb.replaceChildren();
+  const probs = (d.problems || []).slice(0, 10);
+  $("dnsTable").hidden = !probs.length;
+  for (const c of probs) tb.append(el("tr", {}, el("td", { class: "num", text: new Date(c.t * 1000).toLocaleString(loc(), { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit", second: "2-digit" }) }),
+    el("td", { text: c.zufall ? t("dnsRandom") : c.name }), el("td", { class: dnsBad(c.router, c.zufall) ? "num bad-t" : "num", text: dnsCode(c.router) }), el("td", { class: "num", text: dnsCode(c.direkt) })));
+  $("btnDnsNow").disabled = !!d.running;
+}
+$("dnsIv").onchange = (e) => api("/api/dns/settings", { interval: +e.target.value, server: "" }).then(r => { dns = r; renderDNS(); }).catch(err => toast(err.message));
+$("btnDnsNow").onclick = async () => { $("btnDnsNow").disabled = true; try { dns = await api("/api/dns/check", {}); renderDNS(); } catch (e) { toast(e.message); } finally { $("btnDnsNow").disabled = false; } };
+
+// ---------- Ping nach Uhrzeit (Heatmap, sequentiell blau) ----------
+const SEQ = ["#cde2fb", "#b7d3f6", "#9ec5f4", "#86b6ef", "#6da7ec", "#5598e7", "#3987e5", "#2a78d6", "#256abf", "#1c5cab", "#184f95", "#104281", "#0d366b"];
+const isDark = () => document.documentElement.dataset.theme === "dark" || (!document.documentElement.dataset.theme && matchMedia("(prefers-color-scheme: dark)").matches);
+async function loadHeat() {
+  try { heat = await fetch("/api/heat?days=" + heatDays).then(r => r.json()); } catch { heat = null; }
+  renderHeat();
+}
+function renderHeat() {
+  const body = $("heatBody"); if (!body) return; body.replaceChildren();
+  const sel = $("heatHost"), kv = $("heatKv"); kv.replaceChildren();
+  const list = (heat && heat.servers) || [];
+  sel.replaceChildren(...list.map(s => el("option", { value: s.host, text: s.host + (s.city ? " · " + s.city : "") })));
+  sel.hidden = !list.length;
+  if (!list.length) { body.append(el("p", { class: "muted", text: heat && heat.csv_off ? t("heatCsvOff") : t("heatNone") })); $("heatInfo").textContent = ""; return; }
+  if (!list.some(s => s.host === heatHost)) heatHost = list[0].host;
+  sel.value = heatHost;
+  const sv = list.find(s => s.host === heatHost);
+  $("heatInfo").textContent = t("heatMins", { h: fmt(sv.mins / 60, 0) });
+  const NS = "http://www.w3.org/2000/svg", cw = 26, ch = 22, gap = 2, lx = 30, ty = 18;
+  const W = lx + 24 * cw, H = ty + 7 * ch;
+  const svg = document.createElementNS(NS, "svg"); svg.setAttribute("viewBox", `0 0 ${W} ${H}`); svg.setAttribute("role", "img"); svg.setAttribute("aria-label", t("heatTitle") + " " + sv.host);
+  const days = LANG === "en" ? ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"] : ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"];
+  const txt = (x, y, s, anchor) => { const e = document.createElementNS(NS, "text"); e.setAttribute("x", x); e.setAttribute("y", y); e.setAttribute("font-size", 10.5); e.setAttribute("fill", css("--muted")); if (anchor) e.setAttribute("text-anchor", anchor); e.textContent = s; svg.append(e); };
+  for (let h = 0; h < 24; h += 3) txt(lx + h * cw + cw / 2, 12, String(h), "middle");
+  const dark = isDark(), ramp = dark ? [...SEQ].reverse() : SEQ;
+  const lo = sv.min, hi = Math.max(sv.max, sv.min + 1);
+  for (let d = 0; d < 7; d++) {
+    txt(0, ty + d * ch + ch / 2 + 4, days[d]);
+    for (let h = 0; h < 24; h++) {
+      const c = sv.grid[d][h];
+      const r = document.createElementNS(NS, "rect");
+      r.setAttribute("x", lx + h * cw + gap / 2); r.setAttribute("y", ty + d * ch + gap / 2); r.setAttribute("width", cw - gap); r.setAttribute("height", ch - gap); r.setAttribute("rx", 3);
+      let tipT = `${days[d]} ${h}–${h + 1} ${t("heatH")}: `;
+      if (!c) { r.setAttribute("fill", "none"); r.setAttribute("stroke", css("--border")); r.setAttribute("stroke-dasharray", "2 2"); tipT += t("heatNoData"); }
+      else if (c.loss >= 100) { r.setAttribute("fill", css("--critical")); tipT += t("heatAllLost", { m: c.mins }); }
+      else {
+        const k = Math.round((c.ms - lo) / (hi - lo) * (ramp.length - 1));
+        r.setAttribute("fill", ramp[Math.max(0, Math.min(ramp.length - 1, k))]);
+        tipT += t("heatCell", { ms: fmt(c.ms, 1), l: fmt(c.loss, 1), m: c.mins });
+      }
+      r.addEventListener("mousemove", (ev) => showTip(ev, tipT)); r.addEventListener("mouseleave", hideTip);
+      const ti = document.createElementNS(NS, "title"); ti.textContent = tipT; r.append(ti);
+      svg.append(r);
+      if (c && c.loss >= 1 && c.loss < 100) {
+        const dot = document.createElementNS(NS, "circle"); dot.setAttribute("cx", lx + h * cw + cw - 6); dot.setAttribute("cy", ty + d * ch + 6); dot.setAttribute("r", 2.6);
+        dot.setAttribute("fill", css("--critical")); dot.setAttribute("stroke", css("--surface")); dot.setAttribute("stroke-width", 1); dot.style.pointerEvents = "none"; svg.append(dot);
+      }
+    }
+  }
+  body.append(svg);
+  const leg = el("div", { class: "heat-legend" }, el("span", { text: fmt(lo, 0) + " ms" }), el("span", { class: "grad", style: `background:linear-gradient(90deg,${ramp.join(",")})` }), el("span", { text: fmt(hi, 0) + " ms" }),
+    el("span", { class: "lossdot" }), el("span", { text: t("heatLoss") }));
+  body.append(leg);
+  const row = (k, v) => kv.append(el("span", { class: "k", text: k }), el("span", { class: "num", text: v }));
+  if (sv.evening && sv.night) row(t("heatEve"), t("heatEveV", { e: fmt(sv.evening, 1), n: fmt(sv.night, 1), d: (sv.evening - sv.night >= 0 ? "+" : "") + fmt(sv.evening - sv.night, 1) }));
+  if (sv.worst) row(t("heatWorst"), (() => { const [d, h] = sv.worst.split(" "); const i = ["Mo","Di","Mi","Do","Fr","Sa","So"].indexOf(d); return (i >= 0 ? days[i] : d) + " " + h; })() + " " + t("heatH") + " (" + t("heatTypical", { b: fmt(sv.base, 1) }) + ")");
+}
+$("heatHost").onchange = (e) => { heatHost = e.target.value; renderHeat(); };
+for (const b of $("heatDays").querySelectorAll("button")) b.onclick = () => { heatDays = +b.dataset.v; for (const x of $("heatDays").querySelectorAll("button")) x.setAttribute("aria-pressed", x === b); loadHeat(); };
+
+// ---------- Handy-Meldungen ----------
+const PUSH_CATS = ["ausfall", "kurz", "dns", "warnung", "wechsel", "update"];
+let pushMode = null;
+function renderPush() {
+  if (!$("pushSeg") || !S) return;
+  const p = push || { mode: "", cats: {} };
+  if (pushMode === null) pushMode = p.mode || "";
+  for (const b of $("pushSeg").querySelectorAll("button")) b.setAttribute("aria-pressed", b.dataset.v === pushMode);
+  $("pushNtfy").hidden = pushMode !== "ntfy"; $("pushTg").hidden = pushMode !== "telegram"; $("pushCatsBox").hidden = !pushMode;
+  if (pushMode === "ntfy" && p.mode === "ntfy" && document.activeElement !== $("pushNtfyUrl") && !$("pushNtfyUrl").value) $("pushNtfyUrl").value = p.target || "";
+  if (pushMode === "telegram" && p.mode === "telegram") { $("pushTgToken").placeholder = p.has_cred ? "•••••• (" + t("fbPassSaved") + ")" : ""; if (!$("pushTgChat").value) $("pushTgChat").placeholder = p.target || ""; }
+  const box = $("pushCats");
+  if (!box.children.length) for (const k of PUSH_CATS) box.append(el("label", {}, el("input", { type: "checkbox", "data-k": k }), el("span", { text: t("pushC_" + k) })));
+  // noch nie eingerichtet: Ausfälle, DNS-Probleme und Tunnel langsam vorschlagen (änderbar)
+  const cats = p.mode ? (p.cats || {}) : { ausfall: true, dns: true, warnung: true };
+  for (const i of box.querySelectorAll("input")) if (!i.dataset.dirty) i.checked = !!cats[i.dataset.k];
+  $("pushState").textContent = p.last_error ? "✗ " + p.last_error : p.mode ? t("pushOk", { n: p.sent }) : "";
+}
+for (const b of $("pushSeg").querySelectorAll("button")) b.onclick = () => {
+  pushMode = b.dataset.v; renderPush();
+  if (!pushMode) api("/api/push/settings", { mode: "" }).then(r => { push = r; renderPush(); toast(t("pushOff")); }).catch(e => toast(e.message));
+};
+$("pushCats").onchange = (e) => { if (e.target.dataset) e.target.dataset.dirty = "1"; };
+$("btnNtfyRand").onclick = () => { const r = crypto.getRandomValues(new Uint8Array(9)); $("pushNtfyUrl").value = "https://ntfy.sh/relayping-" + [...r].map(x => x.toString(36)).join("").slice(0, 16); };
+$("btnPushSave").onclick = async () => {
+  const cats = {}; for (const i of $("pushCats").querySelectorAll("input")) cats[i.dataset.k] = i.checked;
+  const body = { mode: pushMode, ntfy: $("pushNtfyUrl").value.trim(), tg_token: $("pushTgToken").value.trim(), tg_chat: $("pushTgChat").value.trim(), cats, keep: true };
+  try { push = await api("/api/push/settings", body); $("pushTgToken").value = ""; for (const i of $("pushCats").querySelectorAll("input")) delete i.dataset.dirty; renderPush(); toast(t("saved")); } catch (e) { $("pushState").textContent = "✗ " + e.message; }
+};
+$("btnPushTest").onclick = async () => { try { push = await api("/api/push/test", {}); renderPush(); toast(t("pushSent")); } catch (e) { $("pushState").textContent = "✗ " + e.message; } };
+
+// ---------- Handy-Ansicht ----------
+let lanInfo = null;
+async function renderLAN() {
+  if (!$("lanOn") || LAN_CLIENT) return;
+  try { lanInfo = await fetch("/api/lan/info").then(r => r.json()); } catch { return; }
+  $("lanOn").checked = !!lanInfo.on; $("lanBox").hidden = !lanInfo.on;
+  if (document.activeElement !== $("lanPort")) $("lanPort").value = lanInfo.port;
+  $("lanErr").hidden = !lanInfo.error; $("lanErr").textContent = lanInfo.error || "";
+  $("lanURL").textContent = lanInfo.url || "";
+  const cv = $("lanQR"), g = cv.getContext("2d"); g.fillStyle = "#fff"; g.fillRect(0, 0, cv.width, cv.height);
+  if (lanInfo.url && typeof qrcode === "function") {
+    const q = qrcode(0, "M"); q.addData(lanInfo.url); q.make();
+    const n = q.getModuleCount(), sc = Math.floor(cv.width / n), off = Math.floor((cv.width - sc * n) / 2);
+    g.fillStyle = "#000";
+    for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) if (q.isDark(r, c)) g.fillRect(off + c * sc, off + r * sc, sc, sc);
+  }
+}
+const lanSet = (body) => api("/api/lan/settings", body).then(() => renderLAN()).catch(e => { $("lanErr").hidden = false; $("lanErr").textContent = e.message; });
+$("lanOn").onchange = (e) => { if (e.target.checked && !confirm(t("lanQ"))) { e.target.checked = false; return; } lanSet({ on: e.target.checked, port: +$("lanPort").value || 0 }); };
+$("btnLanNew").onclick = () => lanSet({ on: true, port: +$("lanPort").value || 0, new_key: true }).then(() => toast(t("lanNewOk")));
+$("lanPort").onchange = (e) => lanSet({ on: true, port: +e.target.value });
+
+// ---------- PC-Modus ----------
+$("setLocal").onchange = async (e) => {
+  const on = e.target.checked;
+  if (!confirm(t(on ? "pcModeQ" : "pcModeOffQ"))) { e.target.checked = !on; return; }
+  try { S = await api("/api/localmode", { on }); renderAll(); toast(t(on ? "pcModeOn" : "pcModeOff")); } catch (err) { toast(err.message); e.target.checked = !on; }
+};
+const isEvt = (o) => o.kind === "neustart" || o.kind === "fritz-neu" || o.kind === "fritz-neustart";
+// ---------- FRITZ!Box-Karte ----------
+function renderFritz() {
+  const card = $("fbCard"); if (!card) return;
+  const f = fritz;
+  card.hidden = !(f && f.enabled);
+  if (card.hidden) return;
+  $("fbModel").textContent = f.model || "";
+  $("fbInfo").textContent = f.checked ? timeStr(f.checked * 1000) : "";
+  const r = $("fbRates"); r.replaceChildren();
+  const kv = $("fbKv"); kv.replaceChildren();
+  const msg = $("fbMsg");
+  const msgs = [f.ok ? "" : f.error, f.hint, f.auth === "fehler" ? f.auth_error : ""].filter(Boolean);
+  msg.hidden = !msgs.length; msg.textContent = msgs.join(" ");
+  if (!f.ok) return;
+  const on = f.conn === "Connected";
+  r.append(el("div", { class: "rate" }, el("div", { class: "k", text: "Internet" }),
+    el("span", { class: "v", style: "font-size:20px;color:" + (f.conn ? (on ? "var(--good)" : "var(--critical)") : "var(--muted)"), text: f.conn ? (on ? t("fbOnline") : t("fbOffline")) : "–" })));
+  if (f.have_rate) {
+    r.append(el("div", { class: "rate" }, el("div", { class: "k", style: "color:var(--s1)", text: "↓ Mbit/s" }), el("span", { class: "v num", text: mbit(f.rate_down * 8) })));
+    r.append(el("div", { class: "rate" }, el("div", { class: "k", style: "color:var(--s2)", text: "↑ Mbit/s" }), el("span", { class: "v num", text: mbit(f.rate_up * 8) })));
+  }
+  if (f.have_bytes) {
+    r.append(el("div", { class: "rate" }, el("div", { class: "k", text: t("lnToday") }), el("span", { class: "v num", text: gbStr(f.today_rx + f.today_tx) }), el("span", { class: "u", text: "GB" })));
+    r.append(el("div", { class: "rate" }, el("div", { class: "k", text: new Date().toLocaleDateString(loc(), { month: "long" }) }), el("span", { class: "v num", text: gbStr(f.month_rx + f.month_tx) }), el("span", { class: "u", text: "GB" })));
+  }
+  const row = (k, v) => kv.append(el("span", { class: "k", text: k }), el("span", { class: "num", text: v }));
+  if (f.access) row(t("fbAccess"), (I18N[LANG]["acc_" + f.access] || f.access) + (f.link && f.link !== "Up" ? " (" + f.link + ")" : ""));
+  if (f.max_down) row(t("fbLine"), `↓ ${mbit(f.max_down)} / ↑ ${mbit(f.max_up)} Mbit/s`);
+  if (f.conn_since) row(t("fbConnSince"), new Date(f.conn_since * 1000).toLocaleString(loc(), { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }));
+  if (f.boot_time) row(t("fbBoot"), new Date(f.boot_time * 1000).toLocaleString(loc(), { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }));
+  if (f.firmware) row(t("fbFw"), f.firmware);
+  row(t("fbVia"), f.via === "router" ? t("fbViaRouter") : t("fbViaPC"));
+  row(t("fbAuth"), f.auth === "ok" ? t("fbAuthOk") + (f.user ? " (" + f.user + ")" : "") : f.auth === "fehler" ? "✗" : t("fbAuthOff"));
+  if (f.have_bytes && usage && usage.have_counter) {
+    row(t("fbCompare"), t("fbCompareT", { f: gbStr(f.month_rx + f.month_tx), r: gbStr(usage.month.rx + usage.month.tx) }));
+    kv.append(el("span", { class: "k", text: "" }), el("span", { class: "muted", style: "font-size:12px", text: t("fbCompareN") }));
+  }
 }
 const setting = (body) => api("/api/settings", body).catch(e => toast(e.message));
 for (const b of $("langSeg").querySelectorAll("button")) b.onclick = () => setting({ lang: b.dataset.v });
@@ -1314,17 +2207,30 @@ $("setAlerts").onchange = (e) => setting({ alerts: e.target.checked });
 $("setAlertLoss").onchange = (e) => setting({ alert_loss: +e.target.value });
 $("setAlertExtra").onchange = (e) => setting({ alert_extra_ms: +e.target.value });
 $("setAutoScan").onchange = (e) => setting({ auto_scan_min: +e.target.value });
-$("btnSettings").onclick = () => { renderSettings(); $("setDlg").hidden = false; };
+$("btnSettings").onclick = () => { $("setDlg").hidden = false; renderSettings(); };
 $("btnCloseSettings").onclick = () => $("setDlg").hidden = true;
 for (const d of ["setDlg", "swDlg"]) $(d).onclick = (e) => { if (e.target === $(d)) $(d).hidden = true; };
 $("btnForget").onclick = async () => { try { await api("/api/forget", {}); $("setDlg").hidden = true; series.clear(); toast(t("accessReset")); } catch (e) { toast(e.message); } };
 $("csvToggle").onchange = (e) => setting({ log_csv: e.target.checked });
+$("btnPC").onclick = () => api("/api/pctest/start", {}).then(r => { pct = r; renderPC(); }).catch(e => toast(e.message));
+$("btnLeak").onclick = async () => { $("btnLeak").disabled = true; try { leak = await fetch("/api/leakcheck").then(x => x.json()); renderLeak(); } catch (e) { toast(e.message); } $("btnLeak").disabled = false; };
+$("btnDev").onclick = loadDevices;
+$("btnGmScan").onclick = async () => { $("btnGmScan").disabled = true; try { gameScan = await fetch("/api/games/scan").then(x => x.json()); if (gameScan.error) { toast(gameScan.error); gameScan = null; } renderGame(); } catch (e) { toast(e.message); } $("btnGmScan").disabled = false; };
+$("btnGmStop").onclick = () => api("/api/games/stop", {}).then(r => { game = r; renderGame(); }).catch(e => toast(e.message));
+$("btnGmPing").onclick = async () => { if (!confirm(t("gmPingQ"))) return; $("btnGmPing").disabled = true; try { game = await api("/api/games/ping", {}); renderGame(); } catch (e) { toast(e.message); } $("btnGmPing").disabled = false; };
+$("btnMonth").onclick = () => showMonth("");
+$("repPrev").onclick = () => { const d = new Date(monthShown + "-01T12:00:00"); const cur = new Date(); const isCur = monthShown === `${cur.getFullYear()}-${String(cur.getMonth() + 1).padStart(2, "0")}`; if (isCur) d.setMonth(d.getMonth() - 1); else d.setMonth(cur.getMonth()), d.setFullYear(cur.getFullYear()); showMonth(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`); };
+for (const b of $("themeSeg").querySelectorAll("button")) b.onclick = () => setting({ theme: b.dataset.v });
+$("setUpdate").onchange = () => setting({ update_check: $("setUpdate").checked });
+$("btnUpdNow").onclick = async () => { try { upd = await fetch("/api/update/check").then(x => x.json()); renderBanners(); renderSettings(); if (!upd.available) toast(t("updNone", { v: S.version })); } catch (e) { toast(e.message); } };
+setInterval(() => { if (tab === "line") loadRouterHist(); }, 60000);
+window.addEventListener("resize", () => { if (tab === "line") { renderRates(); renderUsage(); } });
 $("btnGeo").onclick = () => api("/api/geo/compare", {}).then(r => { geo = r; renderGeo(); }).catch(e => toast(e.message));
 $("btnBcList").onclick = async () => { if (!domList) await loadDomainList(); if (domList) runBlockCheck(domList.domains); };
 $("btnBcCustom").onclick = () => runBlockCheck($("bcInput").value.split(/[\s,;]+/).map(x => x.trim()).filter(Boolean));
 $("bcInput").onkeydown = (e) => { if (e.key === "Enter") $("btnBcCustom").click(); };
 $("btnReport").onclick = async () => {
-  try { const r = await fetch("/api/report").then(x => x.json()); $("repText").textContent = r.text; $("repDlg").hidden = false; } catch (e) { toast(e.message); }
+  try { const r = await fetch("/api/report").then(x => x.json()); $("repText").textContent = r.text; $("repPrev").hidden = true; $("repDlg").hidden = false; } catch (e) { toast(e.message); }
 };
 $("repClose").onclick = () => { $("repDlg").hidden = true; };
 $("btnOpenData").onclick = () => api("/api/open-data", {}).catch(err => toast(err.message));
