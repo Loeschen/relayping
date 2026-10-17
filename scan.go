@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
+	"io"
 	"net"
 	"sort"
 	"strconv"
@@ -115,11 +116,11 @@ func (s *Scanner) start(countries []string, pings int, auto bool) error {
 	s.mu.Unlock()
 	s.app.broadcast("scan", s.State())
 
-	go s.run(script, byIP, cancel)
+	go s.run(script, byIP, cancel, ips, pings)
 	return nil
 }
 
-func (s *Scanner) run(script string, byIP map[string]Relay, cancel chan struct{}) {
+func (s *Scanner) run(script string, byIP map[string]Relay, cancel chan struct{}, ips []string, pings int) {
 	finish := func(errText string) {
 		s.mu.Lock()
 		s.state.Running = false
@@ -145,21 +146,29 @@ func (s *Scanner) run(script string, byIP map[string]Relay, cancel chan struct{}
 		s.app.broadcast("scan", st)
 	}
 
-	sess, err := s.app.router.Session()
-	if err != nil {
-		finish(s.app.tr("Nicht mit dem Router verbunden", "Not connected to the router"))
-		return
-	}
-	defer sess.Close()
-	sess.Stdin = strings.NewReader(script)
-	out, err := sess.StdoutPipe()
-	if err != nil {
-		finish(err.Error())
-		return
-	}
-	if err := sess.Start("sh -s"); err != nil {
-		finish(err.Error())
-		return
+	var out io.Reader
+	if s.app.localMode() {
+		r := localScanStream(ips, pings, cancel)
+		defer r.Close()
+		out = r
+	} else {
+		sess, err := s.app.router.Session()
+		if err != nil {
+			finish(s.app.tr("Nicht mit dem Router verbunden", "Not connected to the router"))
+			return
+		}
+		defer sess.Close()
+		sess.Stdin = strings.NewReader(script)
+		o, err := sess.StdoutPipe()
+		if err != nil {
+			finish(err.Error())
+			return
+		}
+		if err := sess.Start("sh -s"); err != nil {
+			finish(err.Error())
+			return
+		}
+		out = o
 	}
 	active := s.app.activeIPs()
 	lines := make(chan string, 64)

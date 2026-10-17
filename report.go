@@ -44,9 +44,22 @@ type DayEvent struct {
 }
 
 type dayFile struct {
-	Mins   map[string][]MinStat `json:"minuten"`
-	Segs   []Segment            `json:"tunnel"`
-	Events []DayEvent           `json:"ereignisse"`
+	Mins   map[string][]MinStat          `json:"minuten"`
+	Segs   []Segment                     `json:"tunnel"`
+	Events []DayEvent                    `json:"ereignisse"`
+	Daily  map[string]map[string]*DayAgg `json:"tageswerte"` // Datum -> Tunnelname -> Summen
+	Counts map[string]map[string]int     `json:"zaehler"`    // Monat -> Ereignisart -> Anzahl
+}
+
+// DayAgg: Ping-Summen eines Tunnels für einen Tag (für den Monatsbericht).
+type DayAgg struct {
+	Sent int     `json:"s"`
+	Recv int     `json:"r"`
+	Sum  float64 `json:"sum"`
+	JSum float64 `json:"js"`
+	JN   int     `json:"jn"`
+	Mins int     `json:"m"`
+	Host string  `json:"h"`
 }
 
 type Day struct {
@@ -71,6 +84,17 @@ func newDay(a *App, file string) *Day {
 }
 
 func (d *Day) pruneLocked(now time.Time) {
+	dcut := now.AddDate(0, -13, 0).Format("2006-01-02")
+	for k := range d.d.Daily {
+		if k < dcut {
+			delete(d.d.Daily, k)
+		}
+	}
+	for k := range d.d.Counts {
+		if k < dcut[:7] {
+			delete(d.d.Counts, k)
+		}
+	}
 	cut := now.Add(-dayKeep - time.Hour).Unix()
 	for h, v := range d.d.Mins {
 		i := 0
@@ -107,6 +131,37 @@ func (d *Day) AddMinute(host string, b minuteBucket) {
 	m := MinStat{T: b.start.Unix(), Sent: b.sent, Recv: b.recv, Sum: b.sum, Min: b.mn, Max: b.mx, JSum: b.jsum, JN: b.jn}
 	d.mu.Lock()
 	d.d.Mins[host] = append(d.d.Mins[host], m)
+	// Tageswert für den Tunnel, der diesen Server gerade nutzt
+	for i := len(d.d.Segs) - 1; i >= 0; i-- {
+		s := d.d.Segs[i]
+		if s.Host != host || m.T > s.To+300 || m.T < s.From-120 {
+			continue
+		}
+		name := s.Name
+		if name == "" {
+			name = s.Iface
+		}
+		if d.d.Daily == nil {
+			d.d.Daily = map[string]map[string]*DayAgg{}
+		}
+		day := b.start.Format("2006-01-02")
+		if d.d.Daily[day] == nil {
+			d.d.Daily[day] = map[string]*DayAgg{}
+		}
+		ag := d.d.Daily[day][name]
+		if ag == nil {
+			ag = &DayAgg{}
+			d.d.Daily[day][name] = ag
+		}
+		ag.Sent += m.Sent
+		ag.Recv += m.Recv
+		ag.Sum += m.Sum
+		ag.JSum += m.JSum
+		ag.JN += m.JN
+		ag.Mins++
+		ag.Host = host
+		break
+	}
 	d.mu.Unlock()
 }
 
@@ -150,6 +205,14 @@ func (d *Day) Event(kind, text string) {
 	}
 	d.mu.Lock()
 	d.d.Events = append(d.d.Events, DayEvent{T: time.Now().Unix(), Kind: kind, Text: text})
+	if d.d.Counts == nil {
+		d.d.Counts = map[string]map[string]int{}
+	}
+	mk := time.Now().Format("2006-01")
+	if d.d.Counts[mk] == nil {
+		d.d.Counts[mk] = map[string]int{}
+	}
+	d.d.Counts[mk][kind]++
 	d.mu.Unlock()
 }
 
@@ -173,6 +236,7 @@ func (d *Day) Run() {
 	for !d.app.quitting() {
 		d.save()
 		d.writeReport()
+		d.writeMonthIfDue(time.Now())
 		select {
 		case <-d.app.quit:
 		case <-time.After(5 * time.Minute):
@@ -280,6 +344,8 @@ type Report struct {
 	Version   string         `json:"version"`
 	Tunnels   []TunnelReport `json:"tunnel"`
 	Events    []DayEvent     `json:"ereignisse"`
+	Usage     UsageState     `json:"verbrauch"`
+	Outages   []Outage       `json:"ausfaelle"`
 	Router    map[string]any `json:"router"`
 	Connected bool           `json:"router_verbunden"`
 	Text      string         `json:"text"`
@@ -384,6 +450,12 @@ func (d *Day) Build(now time.Time) Report {
 	if ok {
 		rep.Router = map[string]any{"modell": inf.Model, "wan": inf.WAN, "laufzeit_s": int64(inf.UptimeS), "temperatur_c": inf.TempC}
 	}
+	rep.Usage = a.traffic.State(now)
+	for _, o := range a.outages.List() {
+		if o.Start >= cut || o.End == 0 || o.End >= cut {
+			rep.Outages = append(rep.Outages, o)
+		}
+	}
 	rep.Text = a.reportText(rep, now)
 	return rep
 }
@@ -463,11 +535,37 @@ func (a *App) reportText(r Report, now time.Time) string {
 		}
 		w("")
 	}
+	if r.Usage.HaveCt {
+		gb := func(v uint64) string { return fmtNum(a, float64(v)/1e9, 1) + " GB" }
+		w(a.tr("Datenverbrauch (Leitung): heute %s, diesen Monat %s (↓ %s, ↑ %s)", "Data used (line): today %s, this month %s (↓ %s, ↑ %s)"),
+			gb(r.Usage.Today.RX+r.Usage.Today.TX), gb(r.Usage.Month.RX+r.Usage.Month.TX), gb(r.Usage.Month.RX), gb(r.Usage.Month.TX))
+		if r.Usage.Forecast > 0 {
+			w(a.tr("  Hochrechnung bis Monatsende: %s", "  Projected to month end: %s"), gb(r.Usage.Forecast))
+		}
+		w("")
+	}
+	var ou, kz []Outage
+	for _, o := range r.Outages {
+		if o.isBlip() {
+			kz = append(kz, o)
+		} else if o.Kind != "neustart" || o.Start >= now.Add(-dayKeep).Unix() {
+			ou = append(ou, o)
+		}
+	}
+	w(a.tr("Ausfälle (24 h): %d", "Outages (24 h): %d"), len(ou))
+	for _, o := range ou {
+		w("  %s  %s", clock(o.Start), a.outageText(o))
+	}
+	w(a.tr("Kurzaussetzer (24 h): %d", "Short dropouts (24 h): %d"), len(kz))
+	for _, o := range kz {
+		w("  %s  %s", time.Unix(o.Start, 0).Format("15:04:05"), a.outageText(o))
+	}
 	var sw, al []DayEvent
 	for _, e := range r.Events {
-		if e.Kind == "wechsel" {
+		switch e.Kind {
+		case "wechsel":
 			sw = append(sw, e)
-		} else {
+		case "warnung":
 			al = append(al, e)
 		}
 	}

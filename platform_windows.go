@@ -3,14 +3,18 @@
 package main
 
 import (
+	"encoding/base64"
+	"encoding/binary"
 	"errors"
 	"fmt"
+	"net"
 	"os"
 	"path/filepath"
 	"runtime"
 	"strings"
 	"sync"
 	"syscall"
+	"time"
 	"unsafe"
 
 	"golang.org/x/sys/windows"
@@ -130,6 +134,9 @@ type winTray struct {
 	mu         sync.Mutex
 	hwnd       uintptr
 	icon       windows.Handle
+	icons      [3]windows.Handle // ok, Warnung, Problem
+	level      int
+	tip        string
 	lang       string
 	taskbarMsg uint32
 	closed     bool
@@ -158,8 +165,12 @@ func (t *winTray) add() bool {
 	n := t.nid()
 	n.uFlags = nifMessage | nifIcon | nifTip
 	n.uCallbackMessage = wmTray
-	n.hIcon = t.icon
-	copyUTF16(n.szTip[:], "RelayPing")
+	n.hIcon = t.curIcon()
+	tip := t.tip
+	if tip == "" {
+		tip = "RelayPing"
+	}
+	copyUTF16(n.szTip[:], tip)
 	r, _, _ := pShellNotifyIconW.Call(nimAdd, uintptr(unsafe.Pointer(&n)))
 	return r != 0
 }
@@ -175,6 +186,28 @@ func (t *winTray) Notify(title, msg string) {
 	n.dwInfoFlags = niifWarning
 	copyUTF16(n.szInfoTitle[:], title)
 	copyUTF16(n.szInfo[:], msg)
+	pShellNotifyIconW.Call(nimModify, uintptr(unsafe.Pointer(&n)))
+}
+
+func (t *winTray) curIcon() windows.Handle {
+	if t.level >= 0 && t.level < 3 && t.icons[t.level] != 0 {
+		return t.icons[t.level]
+	}
+	return t.icon
+}
+
+// SetStatus färbt das Symbol (grün/gelb/rot) und setzt den Tooltip.
+func (t *winTray) SetStatus(level int, tip string) {
+	t.mu.Lock()
+	defer t.mu.Unlock()
+	if t.closed || t.hwnd == 0 || (level == t.level && tip == t.tip) {
+		return
+	}
+	t.level, t.tip = level, tip
+	n := t.nid()
+	n.uFlags = nifIcon | nifTip
+	n.hIcon = t.curIcon()
+	copyUTF16(n.szTip[:], tip)
 	pShellNotifyIconW.Call(nimModify, uintptr(unsafe.Pointer(&n)))
 }
 
@@ -301,6 +334,11 @@ func startTray(app *App, open func()) (Tray, error) {
 		if icon == 0 {
 			icon, _, _ = pLoadIconW.Call(0, 32512) // IDI_APPLICATION
 		}
+		for i := range t.icons {
+			h, _, _ := pLoadImageW.Call(uintptr(hinst), uintptr(2+i), imageIcon, cx, cy, 0)
+			t.icons[i] = windows.Handle(h)
+		}
+		t.level = -1
 		tbName, _ := windows.UTF16PtrFromString("TaskbarCreated")
 		tb, _, _ := pRegisterWindowMessageW.Call(uintptr(unsafe.Pointer(tbName)))
 		t.hwnd, t.icon, t.taskbarMsg = hwnd, windows.Handle(icon), uint32(tb)
@@ -339,7 +377,7 @@ func showConsole(app *App, url string) {
 	if f, err := os.OpenFile("CONIN$", os.O_RDONLY, 0); err == nil {
 		os.Stdin = f
 	}
-	fmt.Println("RelayPing " + version + " – inoffizielles Tool, nicht mit Mullvad VPN AB oder GL.iNet verbunden")
+	fmt.Println("RelayPing " + version + " – inoffizielles Tool, nicht mit Mullvad VPN AB, GL.iNet, ASUS oder AVM verbunden")
 	if url != "" {
 		fmt.Println("Oberfläche: " + url)
 	}
@@ -355,6 +393,9 @@ func acquireSingleInstance() bool {
 	h, err := windows.CreateMutex(nil, false, name)
 	if err != nil {
 		if errors.Is(err, windows.ERROR_ALREADY_EXISTS) {
+			if h != 0 {
+				windows.CloseHandle(h)
+			}
 			return false
 		}
 		return true
@@ -408,4 +449,79 @@ func setAutostart(on bool) error {
 		return errors.New("Pfad der .exe unbekannt")
 	}
 	return k.SetStringValue("RelayPing", `"`+p+`" --hidden`)
+}
+
+// protectSecret verschlüsselt ein Passwort mit Windows-DPAPI (nur dieser Windows-Benutzer kann es lesen).
+func protectSecret(s string) (string, error) {
+	if s == "" {
+		return "", nil
+	}
+	b := []byte(s)
+	in := windows.DataBlob{Size: uint32(len(b)), Data: &b[0]}
+	var out windows.DataBlob
+	if err := windows.CryptProtectData(&in, nil, nil, 0, nil, 0x1 /* CRYPTPROTECT_UI_FORBIDDEN */, &out); err != nil {
+		return "", err
+	}
+	defer windows.LocalFree(windows.Handle(unsafe.Pointer(out.Data)))
+	enc := unsafe.Slice(out.Data, out.Size)
+	return "dpapi:" + base64.StdEncoding.EncodeToString(enc), nil
+}
+
+func unprotectSecret(s string) (string, error) {
+	if s == "" {
+		return "", nil
+	}
+	raw, ok := strings.CutPrefix(s, "dpapi:")
+	if !ok {
+		return "", errors.New("unbekanntes Format")
+	}
+	b, err := base64.StdEncoding.DecodeString(raw)
+	if err != nil || len(b) == 0 {
+		return "", errors.New("unbekanntes Format")
+	}
+	in := windows.DataBlob{Size: uint32(len(b)), Data: &b[0]}
+	var out windows.DataBlob
+	if err := windows.CryptUnprotectData(&in, nil, nil, 0, nil, 0x1, &out); err != nil {
+		return "", err
+	}
+	defer windows.LocalFree(windows.Handle(unsafe.Pointer(out.Data)))
+	return string(unsafe.Slice(out.Data, out.Size)), nil
+}
+
+// ---------- Ping vom PC (ohne Administratorrechte, über die Windows-ICMP-Schnittstelle) ----------
+
+var (
+	iphlpapi         = windows.NewLazySystemDLL("iphlpapi.dll")
+	pIcmpCreateFile  = iphlpapi.NewProc("IcmpCreateFile")
+	pIcmpSendEcho    = iphlpapi.NewProc("IcmpSendEcho")
+	pIcmpCloseHandle = iphlpapi.NewProc("IcmpCloseHandle")
+	icmpMu           sync.Mutex
+	icmpHandle       uintptr
+)
+
+func pingHost(ip net.IP, timeout time.Duration) (float64, bool) {
+	ip4 := ip.To4()
+	if ip4 == nil {
+		return 0, false
+	}
+	// eigener Handle je Aufruf: so laufen im PC-Modus viele Pings gleichzeitig
+	h, _, _ := pIcmpCreateFile.Call()
+	if h == 0 || h == uintptr(windows.InvalidHandle) {
+		return 0, false
+	}
+	defer pIcmpCloseHandle.Call(h)
+	addr := uint32(ip4[0]) | uint32(ip4[1])<<8 | uint32(ip4[2])<<16 | uint32(ip4[3])<<24
+	data := []byte("RelayPing")
+	reply := make([]byte, 256)
+	n, _, _ := pIcmpSendEcho.Call(h, uintptr(addr), uintptr(unsafe.Pointer(&data[0])), uintptr(len(data)), 0,
+		uintptr(unsafe.Pointer(&reply[0])), uintptr(len(reply)), uintptr(timeout.Milliseconds()))
+	if n == 0 {
+		return 0, false
+	}
+	status := binary.LittleEndian.Uint32(reply[4:8])
+	rtt := binary.LittleEndian.Uint32(reply[8:12])
+	if rtt == 0 {
+		return 0.5, status == 0 // Windows meldet unter 1 ms als 0
+	}
+	return float64(rtt), status == 0
 }

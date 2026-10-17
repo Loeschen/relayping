@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
+	"io"
 	"math"
 	"net"
 	"sort"
@@ -110,7 +111,7 @@ func (b *Board) Run() {
 	for !b.app.quitting() {
 		cfg := b.app.store.Get()
 		ok, _, inf := b.app.router.State()
-		if !cfg.BoardOn || !ok {
+		if !cfg.BoardOn || (!ok && !b.app.localMode()) {
 			b.setRunning(false, "")
 			select {
 			case <-b.restart:
@@ -157,7 +158,7 @@ func (b *Board) Run() {
 		b.mu.Unlock()
 		script := fmt.Sprintf(boardScript, cfg.BoardInterval, boardPings, wan, strings.Join(ips, " "))
 		b.setRunning(true, "")
-		err := b.session(script)
+		err := b.session(script, ips, cfg.BoardInterval)
 		if b.app.quitting() {
 			return
 		}
@@ -178,19 +179,29 @@ func (b *Board) setRunning(r bool, errText string) {
 	}
 }
 
-func (b *Board) session(script string) error {
-	s, err := b.app.router.Session()
-	if err != nil {
-		return err
-	}
-	defer s.Close()
-	s.Stdin = strings.NewReader(script)
-	out, err := s.StdoutPipe()
-	if err != nil {
-		return err
-	}
-	if err := s.Start("sh -s"); err != nil {
-		return err
+func (b *Board) session(script string, ips []string, interval int) error {
+	var out io.Reader
+	if b.app.localMode() {
+		stop := make(chan struct{})
+		defer close(stop)
+		r := localBoardStream(ips, interval, boardPings, stop)
+		defer r.Close()
+		out = r
+	} else {
+		s, err := b.app.router.Session()
+		if err != nil {
+			return err
+		}
+		defer s.Close()
+		s.Stdin = strings.NewReader(script)
+		o, err := s.StdoutPipe()
+		if err != nil {
+			return err
+		}
+		if err := s.Start("sh -s"); err != nil {
+			return err
+		}
+		out = o
 	}
 	lines := make(chan string, 256)
 	go func() {

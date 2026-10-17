@@ -170,6 +170,12 @@ func (g *Geo) State() GeoState {
 		servers[r.CountryCode]++
 		names[r.CountryCode] = r.Country
 	}
+	if a.router.isNative() {
+		// OpenWrt/Asus: RelayPing stellt die Gegenstelle direkt ein, jedes Land geht
+		for cc, n := range servers {
+			profiles[cc] = n
+		}
+	}
 	g.mu.Lock()
 	st := GeoState{AsOf: adultRulesAsOf, Comparing: g.await && a.scanner.State().Running}
 	for _, cc := range geoCandidates {

@@ -28,6 +28,27 @@ type Config struct {
 	BoardInterval  int                 `json:"bestenliste_sekunden"`
 	ChartScale     string              `json:"diagramm_achse"` // auto, lin, log
 	Favorites      map[string][]string `json:"favoriten"`
+	Theme          string              `json:"design"`         // system, hell, dunkel
+	UpdateCheck    bool                `json:"update_pruefen"` // täglich bei GitHub nach neuer Version fragen
+
+	// FRITZ!Box (vorgeschaltet oder einziger Router), abgefragt per UPnP/TR-064
+	FritzOn   bool   `json:"fritzbox_an"`
+	FritzHost string `json:"fritzbox_adresse"`  // z. B. 192.168.178.1 oder 192.168.178.1:49000
+	FritzUser string `json:"fritzbox_benutzer"` // leer = automatisch
+	FritzPass string `json:"fritzbox_passwort"` // mit Windows-DPAPI verschlüsselt ("dpapi:…")
+
+	DNSWatchSec    int    `json:"dns_waechter_sekunden"` // 0 = aus
+	DNSWatchServer string `json:"dns_waechter_server"`   // leer = Router-Adresse
+
+	PushMode   string          `json:"handy_meldungen"`       // "", ntfy, telegram
+	PushSecret string          `json:"handy_zugang"`          // verschlüsselt (DPAPI)
+	PushCats   map[string]bool `json:"handy_meldungen_arten"` // ausfall, kurz, dns, warnung, wechsel, update
+
+	LANOn    bool   `json:"handy_ansicht_an"`
+	LANPort  int    `json:"handy_ansicht_port"`
+	LANToken string `json:"handy_ansicht_schluessel"`
+
+	LocalMode bool `json:"pc_modus"` // ohne Router vom PC aus messen
 }
 
 type Store struct {
@@ -55,6 +76,10 @@ func defaultConfig() Config {
 		BoardInterval:  10,
 		ChartScale:     "auto",
 		Favorites:      map[string][]string{},
+		Theme:          "system",
+		UpdateCheck:    true,
+		FritzHost:      "192.168.178.1",
+		LANPort:        47322,
 	}
 }
 
@@ -102,6 +127,18 @@ func (c *Config) normalize() {
 	if c.RouterUser == "" {
 		c.RouterUser = "root"
 	}
+	if c.FritzHost == "" {
+		c.FritzHost = d.FritzHost
+	}
+	if c.LANPort < 1024 || c.LANPort > 65535 {
+		c.LANPort = d.LANPort
+	}
+	if c.DNSWatchSec < 0 || c.DNSWatchSec > 3600 {
+		c.DNSWatchSec = 0
+	}
+	if c.PushCats == nil {
+		c.PushCats = map[string]bool{}
+	}
 	if c.ScanPings < 5 || c.ScanPings > 100 {
 		c.ScanPings = 20
 	}
@@ -130,6 +167,11 @@ func (c *Config) normalize() {
 	case "auto", "lin", "log":
 	default:
 		c.ChartScale = "auto"
+	}
+	switch c.Theme {
+	case "system", "hell", "dunkel":
+	default:
+		c.Theme = "system"
 	}
 	if c.Favorites == nil {
 		c.Favorites = map[string][]string{}

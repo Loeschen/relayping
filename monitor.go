@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
+	"io"
 	"math"
 	"regexp"
 	"strconv"
@@ -182,19 +183,29 @@ func (m *Monitor) Run() {
 }
 
 func (m *Monitor) session() error {
-	s, err := m.app.router.Session()
-	if err != nil {
-		return errors.New(m.app.tr("wartet auf Router", "waiting for router"))
-	}
-	defer s.Close()
-	out, err := s.StdoutPipe()
-	if err != nil {
-		return err
-	}
-	ifopt := m.app.router.PingIfaceOpt()
-	cmd := fmt.Sprintf(`sh -c 'echo PID $$; exec ping %s %s 2>&1'`, ifopt, m.relay.IPv4)
-	if err := s.Start(cmd); err != nil {
-		return err
+	var out io.Reader
+	if m.app.localMode() {
+		stop := make(chan struct{})
+		defer close(stop)
+		r := localPingStream(m.relay.IPv4, stop)
+		defer r.Close()
+		out = r
+	} else {
+		s, err := m.app.router.Session()
+		if err != nil {
+			return errors.New(m.app.tr("wartet auf Router", "waiting for router"))
+		}
+		defer s.Close()
+		o, err := s.StdoutPipe()
+		if err != nil {
+			return err
+		}
+		ifopt := m.app.router.PingIfaceOpt()
+		cmd := fmt.Sprintf(`sh -c 'echo PID $$; exec ping %s %s 2>&1'`, ifopt, m.relay.IPv4)
+		if err := s.Start(cmd); err != nil {
+			return err
+		}
+		out = o
 	}
 	m.setStatus("laeuft")
 

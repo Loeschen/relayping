@@ -23,6 +23,17 @@ type App struct {
 	speed    *Speed
 	day      *Day
 	geo      *Geo
+	traffic  *Traffic
+	outages  *Outages
+	pctest   *PCTester
+	updater  *Updater
+	rhist    *RouterHist
+	games    *Games
+	fritz    *Fritz
+	blips    *Blips
+	dnsw     *DNSWatch
+	pusher   *Pusher
+	lan      *LANServer
 	csv      *CSVLog
 	tray     Tray
 	log      *Logger
@@ -56,13 +67,29 @@ func newApp(dir string) *App {
 	a.speed = newSpeed(a, a.store.File("relayping-speed.json"))
 	a.day = newDay(a, a.store.File("relayping-tag.json"))
 	a.geo = newGeo(a, a.store.File("relayping-laender.json"))
+	a.traffic = newTraffic(a, a.store.File("relayping-verbrauch.json"))
+	a.outages = newOutages(a, a.store.File("relayping-ausfaelle.json"))
+	a.pctest = newPCTester(a, a.store.File("relayping-pctest.json"))
+	a.updater = &Updater{app: a}
+	a.rhist = newRouterHist(a.store.File("relayping-router.json"))
+	a.games = &Games{app: a}
+	a.fritz = newFritz(a, a.store.File("relayping-fritzbox.json"))
+	a.blips = newBlips(a)
+	a.dnsw = newDNSWatch(a, a.store.File("relayping-dns.json"))
+	a.pusher = newPusher(a)
+	a.lan = &LANServer{app: a}
 	a.csv = &CSVLog{app: a}
 	a.tray = noTray{}
 	return a
 }
 
 func (a *App) Quit() {
-	a.quitOnce.Do(func() { close(a.quit) })
+	a.quitOnce.Do(func() {
+		if a.traffic != nil {
+			a.traffic.Save()
+		}
+		close(a.quit)
+	})
 }
 
 func (a *App) quitting() bool {
@@ -133,6 +160,13 @@ type StateResp struct {
 	BoardCC     []string            `json:"board_countries"`
 	BoardSec    int                 `json:"board_interval"`
 	ChartScale  string              `json:"chart_scale"`
+	Theme       string              `json:"theme"`
+	UpdateCheck bool                `json:"update_check"`
+	NeedLogin   bool                `json:"need_login"`
+	LocalMode   bool                `json:"local_mode"`
+	PubKey      string              `json:"pubkey,omitempty"`
+	Fritz       bool                `json:"fritz"`
+	Health      Health              `json:"health"`
 	Favorites   map[string][]string `json:"favorites"`
 	Switch      map[string]any      `json:"switch"`
 	Autostart   *bool               `json:"autostart,omitempty"` // nur unter Windows
@@ -162,9 +196,13 @@ func (a *App) State() StateResp {
 		DataDir: a.store.dir, Lang: c.Lang, Alerts: c.Alerts, AlertLoss: c.AlertLossPct, AlertExtra: c.AlertExtraMs,
 		AutoScanMin: c.AutoScanMin, BoardOn: c.BoardOn, BoardCC: c.BoardCountries, BoardSec: c.BoardInterval,
 		ChartScale: c.ChartScale, Favorites: c.Favorites, Switch: a.switchInfo(),
+		Theme: c.Theme, UpdateCheck: c.UpdateCheck, Health: a.health(), NeedLogin: a.router.NeedLogin(), Fritz: c.FritzOn, LocalMode: c.LocalMode,
 	}
 	if v, ok := autostartEnabled(); ok {
 		st.Autostart = &v
+	}
+	if inf.Platform == "asus" || (st.NeedLogin && st.HasKey) {
+		st.PubKey = a.router.PublicKey()
 	}
 	return st
 }
@@ -352,7 +390,9 @@ func (a *App) onConnected() {
 			if a.quitting() {
 				return
 			}
-			if ok, _, _ := a.router.State(); !ok {
+			if ok, _, inf := a.router.State(); !ok {
+				a.outages.Observe(false, inf, time.Now())
+				a.updateTray()
 				continue
 			}
 			n++
@@ -361,8 +401,16 @@ func (a *App) onConnected() {
 			}
 			a.router.Refresh()
 			// neue Tunnel-Server automatisch live beobachten
-			_, _, inf := a.router.State()
-			a.day.Tunnels(inf.Tunnels, time.Now())
+			ok, _, inf := a.router.State()
+			now := time.Now()
+			a.day.Tunnels(inf.Tunnels, now)
+			a.traffic.Observe(inf, now)
+			a.outages.Observe(ok, inf, now)
+			a.rhist.Add(inf, now)
+			a.updateTray()
+			if n%3 == 0 {
+				a.broadcast("usage", a.traffic.State(now))
+			}
 			for _, t := range inf.Tunnels {
 				if t.Host != "" && a.monitor(t.Host) == nil {
 					a.startMonitor(t.Host, false)

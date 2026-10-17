@@ -13,15 +13,21 @@ import (
 	"time"
 )
 
-func (a *App) routes() http.Handler {
+func (a *App) routes() http.Handler { return a.guardHost(a.mux()) }
+
+func (a *App) mux() http.Handler {
 	mux := http.NewServeMux()
 	sub, _ := fs.Sub(uiFS, "ui")
 	static := http.FileServer(http.FS(sub))
 
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		if k := r.URL.Query().Get("k"); k != "" {
-			if k == a.token {
-				http.SetCookie(w, &http.Cookie{Name: "relayping", Value: a.token, Path: "/", HttpOnly: true, SameSite: http.SameSiteStrictMode, MaxAge: 400 * 24 * 3600})
+			want := a.token
+			if isLAN(r) {
+				want = a.lanToken()
+			}
+			if want != "" && k == want {
+				http.SetCookie(w, &http.Cookie{Name: "relayping", Value: want, Path: "/", HttpOnly: true, SameSite: http.SameSiteStrictMode, MaxAge: 400 * 24 * 3600})
 				http.Redirect(w, r, "/", http.StatusFound)
 				return
 			}
@@ -58,6 +64,93 @@ func (a *App) routes() http.Handler {
 	api("/api/alerts", func(w http.ResponseWriter, r *http.Request) { writeJSON(w, a.alerts.List()) })
 	api("/api/switch", func(w http.ResponseWriter, r *http.Request) { writeJSON(w, a.switcher.Status()) })
 	api("/api/speed", func(w http.ResponseWriter, r *http.Request) { writeJSON(w, a.speed.State()) })
+	api("/api/usage", func(w http.ResponseWriter, r *http.Request) { writeJSON(w, a.traffic.State(time.Now())) })
+	api("/api/outages", func(w http.ResponseWriter, r *http.Request) { writeJSON(w, a.outages.List()) })
+	api("/api/devices", func(w http.ResponseWriter, r *http.Request) {
+		d, traffic, err := a.Devices()
+		if err != nil {
+			writeErr(w, err.Error())
+			return
+		}
+		writeJSON(w, map[string]any{"devices": d, "has_traffic": traffic})
+	})
+	api("/api/pctest", func(w http.ResponseWriter, r *http.Request) { writeJSON(w, a.pctest.State()) })
+	api("/api/pctest/start", func(w http.ResponseWriter, r *http.Request) {
+		if err := a.pctest.Start(); err != nil {
+			writeErr(w, err.Error())
+			return
+		}
+		writeJSON(w, a.pctest.State())
+	})
+	api("/api/routerhist", func(w http.ResponseWriter, r *http.Request) { writeJSON(w, a.rhist.List()) })
+	api("/api/month", func(w http.ResponseWriter, r *http.Request) {
+		m := r.URL.Query().Get("m")
+		if _, err := time.Parse("2006-01", m); err != nil {
+			m = time.Now().Format("2006-01")
+		}
+		writeJSON(w, a.BuildMonth(m, time.Now()))
+	})
+	api("/api/fritz", func(w http.ResponseWriter, r *http.Request) { writeJSON(w, a.fritz.State()) })
+	api("/api/fritz/settings", func(w http.ResponseWriter, r *http.Request) {
+		var req struct {
+			On       bool   `json:"on"`
+			Host     string `json:"host"`
+			User     string `json:"user"`
+			Password string `json:"password"`
+			Keep     bool   `json:"keep_password"`
+		}
+		if !a.readJSON(w, r, &req) {
+			return
+		}
+		if err := a.fritz.Configure(req.On, req.Host, strings.TrimSpace(req.User), req.Password, req.Keep); err != nil {
+			writeErr(w, err.Error())
+			return
+		}
+		a.pushState()
+		if !req.On {
+			a.broadcast("fritz", a.fritz.State())
+			writeJSON(w, a.fritz.State())
+			return
+		}
+		writeJSON(w, a.fritz.Poll())
+	})
+	api("/api/update/check", func(w http.ResponseWriter, r *http.Request) { writeJSON(w, a.updater.Check()) })
+	api("/api/update/apply", func(w http.ResponseWriter, r *http.Request) {
+		if err := a.updater.Apply(); err != nil {
+			writeErr(w, err.Error())
+			return
+		}
+		writeJSON(w, a.updater.State())
+	})
+	api("/api/games/scan", func(w http.ResponseWriter, r *http.Request) {
+		gs, err := a.ScanGames()
+		if err != nil {
+			writeErr(w, err.Error())
+			return
+		}
+		writeJSON(w, gs)
+	})
+	api("/api/games/watch", func(w http.ResponseWriter, r *http.Request) {
+		var f GameFlow
+		if !a.readJSON(w, r, &f) {
+			return
+		}
+		if err := a.games.Watch(f); err != nil {
+			writeErr(w, err.Error())
+			return
+		}
+		writeJSON(w, a.games.State())
+	})
+	api("/api/games/stop", func(w http.ResponseWriter, r *http.Request) { a.games.Stop(); writeJSON(w, a.games.State()) })
+	api("/api/games/ping", func(w http.ResponseWriter, r *http.Request) {
+		if err := a.games.Ping(); err != nil {
+			writeErr(w, err.Error())
+			return
+		}
+		writeJSON(w, a.games.State())
+	})
+	api("/api/game", func(w http.ResponseWriter, r *http.Request) { writeJSON(w, a.games.State()) })
+	api("/api/leakcheck", func(w http.ResponseWriter, r *http.Request) { writeJSON(w, a.LeakCheck()) })
 	api("/api/geo", func(w http.ResponseWriter, r *http.Request) { writeJSON(w, a.geo.State()) })
 	api("/api/geo/compare", func(w http.ResponseWriter, r *http.Request) {
 		if err := a.geo.Compare(); err != nil {
@@ -127,7 +220,7 @@ func (a *App) routes() http.Handler {
 		for _, ev := range []struct {
 			name string
 			v    any
-		}{{"state", a.State()}, {"backfill", a.backfill()}, {"board", a.board.State()}, {"alerts", a.alerts.List()}, {"switch", a.switcher.Status()}, {"speed", a.speed.State()}, {"geo", a.geo.State()}} {
+		}{{"state", a.State()}, {"backfill", a.backfill()}, {"board", a.board.State()}, {"alerts", a.alerts.List()}, {"switch", a.switcher.Status()}, {"speed", a.speed.State()}, {"geo", a.geo.State()}, {"usage", a.traffic.State(time.Now())}, {"outages", a.outages.List()}, {"pctest", a.pctest.State()}, {"update", a.updater.State()}, {"game", a.games.State()}, {"fritz", a.fritz.State()}, {"dns", a.dnsw.Stats()}} {
 			b, _ := json.Marshal(ev.v)
 			fmt.Fprintf(w, "event: %s\ndata: %s\n\n", ev.name, b)
 		}
@@ -247,7 +340,7 @@ func (a *App) routes() http.Handler {
 			return
 		}
 		cc := cleanCC(req.Countries)
-		if c, _, _ := a.router.State(); !c {
+		if c, _, _ := a.router.State(); !c && !a.localMode() {
 			writeErr(w, a.tr("Nicht mit dem Router verbunden", "Not connected to the router"))
 			return
 		}
@@ -343,6 +436,8 @@ func (a *App) routes() http.Handler {
 			BoardSec    *int     `json:"board_interval"`
 			ChartScale  *string  `json:"chart_scale"`
 			Autostart   *bool    `json:"autostart"`
+			Theme       *string  `json:"theme"`
+			UpdateCheck *bool    `json:"update_check"`
 		}
 		if !a.readJSON(w, r, &req) {
 			return
@@ -380,6 +475,12 @@ func (a *App) routes() http.Handler {
 			}
 			if req.ChartScale != nil {
 				c.ChartScale = *req.ChartScale
+			}
+			if req.Theme != nil {
+				c.Theme = *req.Theme
+			}
+			if req.UpdateCheck != nil {
+				c.UpdateCheck = *req.UpdateCheck
 			}
 		})
 		if req.Autostart != nil {
@@ -427,7 +528,16 @@ func (a *App) routes() http.Handler {
 		writeJSON(w, map[string]bool{"ok": true})
 		go func() { time.Sleep(200 * time.Millisecond); a.Quit() }()
 	})
-	return a.guardHost(mux)
+	a.extraRoutes(api)
+	return secHeaders(mux)
+}
+
+func secHeaders(h http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("X-Frame-Options", "DENY")
+		w.Header().Set("Content-Security-Policy", "default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; img-src 'self' data:")
+		h.ServeHTTP(w, r)
+	})
 }
 
 // Schutz gegen DNS-Rebinding: nur Aufrufe an 127.0.0.1/localhost annehmen.
@@ -438,15 +548,20 @@ func (a *App) guardHost(h http.Handler) http.Handler {
 			http.Error(w, "wrong host", http.StatusForbidden)
 			return
 		}
-		w.Header().Set("X-Frame-Options", "DENY")
-		w.Header().Set("Content-Security-Policy", "default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; img-src 'self' data:")
 		h.ServeHTTP(w, r)
 	})
 }
 
 func (a *App) authed(r *http.Request) bool {
 	c, err := r.Cookie("relayping")
-	return err == nil && c.Value == a.token
+	if err != nil {
+		return false
+	}
+	if isLAN(r) {
+		t := a.lanToken()
+		return t != "" && c.Value == t
+	}
+	return c.Value == a.token
 }
 
 func writeJSON(w http.ResponseWriter, v any) {

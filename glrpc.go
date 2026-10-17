@@ -257,6 +257,12 @@ func buildSetTunnel(t GLTunnel, peerIDs []int) map[string]any {
 // RefreshGL liest Tunnel und Server-Profile aus der GL.iNet-Konfiguration.
 func (r *Router) RefreshGL(withPeers bool) {
 	st := &GLState{}
+	if r.isNative() {
+		r.mu.Lock()
+		r.gl = &GLState{Err: "kein GL.iNet-Router"}
+		r.mu.Unlock()
+		return
+	}
 	r.mu.Lock()
 	old := r.gl
 	r.mu.Unlock()
@@ -336,10 +342,26 @@ func (s *Switcher) set(fn func(st *SwitchStatus)) {
 	s.app.broadcast("switch", st)
 }
 
+// swTarget beschreibt, wie ein Tunnel umgestellt und notfalls zurückgestellt wird
+// (GL.iNet-Schnittstelle oder direkt per uci/nvram).
+type swTarget struct {
+	ID      int
+	Name    string
+	Iface   string
+	Host    string // aktueller Server
+	OldIP   string
+	Panel   string // wo man es von Hand prüfen kann
+	Apply   func(Relay) error
+	Restore func() error
+}
+
 // Start prüft die Anfrage und wechselt im Hintergrund.
 func (s *Switcher) Start(tunnelID int, host string, allowCountry bool) error {
 	a := s.app
 	r := a.router
+	if r.isNative() {
+		return s.startNative(tunnelID, host, allowCountry)
+	}
 	r.RefreshGL(false)
 	gl := r.GL()
 	if gl == nil || !gl.OK {
@@ -376,11 +398,54 @@ func (s *Switcher) Start(tunnelID int, host string, allowCountry bool) error {
 	}
 	s.st = SwitchStatus{Running: true, TunnelID: t.TunnelID, Name: t.Name, From: t.Host, To: target.Host, Stage: "senden", Started: time.Now()}
 	s.mu.Unlock()
-	go s.run(t, peer, target)
+	oldIP := ""
+	if old, ok := a.relays.Host(t.Host); ok {
+		oldIP = old.IPv4
+	}
+	st := swTarget{ID: t.TunnelID, Name: t.Name, Iface: t.Iface, Host: t.Host, OldIP: oldIP, Panel: a.platformPanel("glinet"),
+		Apply:   func(Relay) error { return r.RPC("vpn-client", "set_tunnel", buildSetTunnel(t, []int{peer.ID}), nil) },
+		Restore: func() error { return r.RPC("vpn-client", "set_tunnel", buildSetTunnel(t, t.PeerIDs), nil) },
+	}
+	go s.run(st, target)
 	return nil
 }
 
-func (s *Switcher) run(t GLTunnel, peer GLPeer, target Relay) {
+func (s *Switcher) startNative(tunnelID int, host string, allowCountry bool) error {
+	a := s.app
+	target, ok := a.relays.Host(host)
+	if !ok {
+		return errors.New(a.tr("Unbekannter Server", "Unknown server"))
+	}
+	s.mu.Lock()
+	busy := s.st.Running
+	s.mu.Unlock()
+	if busy {
+		return errors.New(a.tr("Es läuft bereits ein Wechsel", "A switch is already in progress"))
+	}
+	t, err := a.nativeTarget(tunnelID)
+	if err != nil {
+		return err
+	}
+	cur, _ := a.relays.Host(t.Host)
+	if !allowCountry && cur.CountryCode != "" && cur.CountryCode != target.CountryCode {
+		return fmt.Errorf(a.tr("Wechsel nur innerhalb des Landes (%s): So bleibt der Zweck des Tunnels erhalten. Länder wechselst du im Tab „Länder“.",
+			"Switching only within the same country (%s), so the tunnel keeps its purpose. Change countries in the “Countries” tab."), strings.ToUpper(cur.CountryCode))
+	}
+	if t.Host == target.Host {
+		return errors.New(a.tr("Der Tunnel nutzt diesen Server bereits", "The tunnel already uses this server"))
+	}
+	s.mu.Lock()
+	if s.st.Running {
+		s.mu.Unlock()
+		return errors.New(a.tr("Es läuft bereits ein Wechsel", "A switch is already in progress"))
+	}
+	s.st = SwitchStatus{Running: true, TunnelID: t.ID, Name: t.Name, From: t.Host, To: target.Host, Stage: "senden", Started: time.Now()}
+	s.mu.Unlock()
+	go s.run(t, target)
+	return nil
+}
+
+func (s *Switcher) run(t swTarget, target Relay) {
 	a := s.app
 	r := a.router
 	start := time.Now()
@@ -390,18 +455,21 @@ func (s *Switcher) run(t GLTunnel, peer GLPeer, target Relay) {
 		})
 		a.csv.Switch(start, t.Name, t.Host, target.Host, stage, msg, time.Since(start))
 		a.day.Event("wechsel", msg)
-		r.RefreshGL(false)
+		if !r.isNative() {
+			r.RefreshGL(false)
+		}
 		r.Refresh()
 		if stage == "ok" {
 			a.startMonitor(target.Host, false)
 		}
 		a.notify(a.tr("Server-Wechsel", "Server switch"), msg)
+		a.push("wechsel", a.tr("Server-Wechsel", "Server switch"), msg)
 	}
 	s.set(func(st *SwitchStatus) {
 		st.Message = fmt.Sprintf(a.tr("Stelle %s auf %s um …", "Switching %s to %s …"), t.Name, target.Host)
 	})
 	routerStart := r.routerNow()
-	if err := r.RPC("vpn-client", "set_tunnel", buildSetTunnel(t, []int{peer.ID}), nil); err != nil {
+	if err := t.Apply(target); err != nil {
 		finish("fehler", fmt.Sprintf(a.tr("Der Router hat den Wechsel abgelehnt: %v", "The router rejected the switch: %v"), err))
 		return
 	}
@@ -418,19 +486,16 @@ func (s *Switcher) run(t GLTunnel, peer GLPeer, target Relay) {
 		st.Stage = "zurueck"
 		st.Message = a.tr("Keine Verbindung zum neuen Server – stelle den vorherigen wieder ein …", "No connection to the new server – restoring the previous one …")
 	})
-	if err := r.RPC("vpn-client", "set_tunnel", buildSetTunnel(t, t.PeerIDs), nil); err != nil {
-		finish("fehler", fmt.Sprintf(a.tr("Wechsel fehlgeschlagen UND Rückfall abgelehnt (%v). Bitte im GL.iNet-Panel prüfen!", "Switch failed AND restoring was rejected (%v). Please check in the GL.iNet panel!"), err))
+	if err := t.Restore(); err != nil {
+		finish("fehler", fmt.Sprintf(a.tr("Wechsel fehlgeschlagen UND Rückfall abgelehnt (%v). Bitte %s prüfen!", "Switch failed AND restoring was rejected (%v). Please check %s!"), err, t.Panel))
 		return
 	}
-	oldIP := ""
-	if old, ok := a.relays.Host(t.Host); ok {
-		oldIP = old.IPv4
-	}
+	oldIP := t.OldIP
 	if oldIP != "" && r.waitHandshake(t.Iface, oldIP, r.routerNow(), 35*time.Second) {
 		finish("zurueck", fmt.Sprintf(a.tr("%s antwortete nicht. %s nutzt wieder %s.", "%s did not respond. %s is back on %s."), target.Host, t.Name, t.Host))
 		return
 	}
-	finish("fehler", a.tr("Rückfall eingestellt, aber noch keine Verbindung bestätigt. Bitte im GL.iNet-Panel prüfen.", "Restored the previous setting, but no connection confirmed yet. Please check in the GL.iNet panel."))
+	finish("fehler", fmt.Sprintf(a.tr("Rückfall eingestellt, aber noch keine Verbindung bestätigt. Bitte %s prüfen.", "Restored the previous setting, but no connection confirmed yet. Please check %s."), t.Panel))
 }
 
 func (r *Router) routerNow() int64 {
@@ -484,8 +549,23 @@ func (r *Router) waitHandshake(iface, ip string, since int64, timeout time.Durat
 
 // SwitchTargets liefert für die UI je Tunnel, ob und wohin gewechselt werden kann.
 func (a *App) switchInfo() map[string]any {
-	gl := a.router.GL()
 	out := map[string]any{"available": false}
+	if _, _, inf := a.router.State(); inf.Platform == "openwrt" || inf.Platform == "asus" {
+		var ts []map[string]any
+		for _, t := range inf.Tunnels {
+			if t.CanSwitch {
+				ts = append(ts, map[string]any{"tunnel_id": t.TunnelID, "name": t.Name, "iface": t.Iface, "host": t.Host, "enabled": true, "profiles": len(a.relays.All())})
+			}
+		}
+		out["available"] = len(ts) > 0
+		out["native"] = true
+		out["tunnels"] = ts
+		if len(ts) == 0 {
+			out["reason"] = a.tr("kein umstellbarer WireGuard-Tunnel gefunden", "no switchable WireGuard tunnel found")
+		}
+		return out
+	}
+	gl := a.router.GL()
 	if gl == nil {
 		out["reason"] = a.tr("noch nicht geprüft", "not checked yet")
 		return out

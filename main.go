@@ -18,7 +18,7 @@ import (
 //go:embed ui
 var uiFS embed.FS
 
-const version = "0.11.0-beta"
+const version = "0.16.0-beta"
 
 // runInfo erlaubt einer zweiten gestarteten Instanz, die laufende zu öffnen.
 type runInfo struct {
@@ -28,16 +28,24 @@ type runInfo struct {
 }
 
 func main() {
-	hidden := false
+	hidden, afterUpdate := false, false
 	for _, a := range os.Args[1:] {
 		if a == "--hidden" || a == "/hidden" {
 			hidden = true
+		}
+		if a == "--after-update" {
+			hidden, afterUpdate = true, true
 		}
 	}
 	dir := dataDir()
 	runFile := dir + string(os.PathSeparator) + "relayping-run.json"
 
-	if !acquireSingleInstance() {
+	got := acquireSingleInstance()
+	for i := 0; !got && afterUpdate && i < 40; i++ {
+		time.Sleep(500 * time.Millisecond) // alte Version beendet sich gerade
+		got = acquireSingleInstance()
+	}
+	if !got {
 		// läuft schon: Oberfläche der laufenden Instanz öffnen und beenden
 		if b, err := os.ReadFile(runFile); err == nil {
 			var ri runInfo
@@ -86,7 +94,9 @@ func main() {
 			app.log.Printf("Serverliste: %v", err)
 		}
 		app.pushState()
-		if app.router.HasKey() {
+		if app.localMode() {
+			app.startLocal()
+		} else if app.router.HasKey() {
 			if err := app.router.ConnectKey(); err != nil && !errors.Is(err, errHostKeyChanged) {
 				app.router.EnsureReconnect()
 			}
@@ -94,6 +104,12 @@ func main() {
 	}()
 	go app.board.Run()
 	go app.day.Run()
+	go app.traffic.RunLive()
+	go app.updater.Run()
+	go app.fritz.Run()
+	go app.blips.Run()
+	go app.dnsw.Run()
+	go app.lan.Apply()
 	go app.alerts.Run()
 	go app.scanner.AutoRun()
 

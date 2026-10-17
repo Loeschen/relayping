@@ -7,6 +7,7 @@ import (
 	"crypto/rsa"
 	"crypto/sha256"
 	"encoding/base64"
+	"encoding/json"
 	"encoding/pem"
 	"errors"
 	"fmt"
@@ -25,6 +26,8 @@ import (
 var (
 	reIface = regexp.MustCompile(`^[A-Za-z0-9._@-]{1,32}$`)
 	reHost  = regexp.MustCompile(`^[A-Za-z0-9.\-]{1,253}$`)
+	// uci-Abschnitt, z. B. "cfg0a1b2c" oder "@wireguard_wg0[0]"
+	reUCISection = regexp.MustCompile(`^@?[A-Za-z0-9_]{1,40}(\[[0-9]{1,2}\])?$`)
 
 	errHostKeyChanged = errors.New("hostkey-changed")
 	errNoKey          = errors.New("no-key")
@@ -67,9 +70,13 @@ type Tunnel struct {
 	Name      string `json:"name,omitempty"`
 	TunnelID  int    `json:"tunnel_id,omitempty"`
 	CanSwitch bool   `json:"can_switch"`
+	Probe     int    `json:"probe"` // Ping durch den Tunnel: 1 ok, 0 fehlgeschlagen, -1 unbekannt
 }
 
 type RouterInfo struct {
+	Platform  string    `json:"platform"` // glinet, openwrt, asus oder leer (unbekannt)
+	Firmware  string    `json:"firmware,omitempty"`
+	Merlin    bool      `json:"merlin,omitempty"`
 	WAN       string    `json:"wan"`
 	FastPing  bool      `json:"fastping"`
 	Model     string    `json:"model"`
@@ -83,6 +90,14 @@ type RouterInfo struct {
 	TempC     float64   `json:"temp_c"`
 	UptimeS   float64   `json:"uptime_s"`
 	RouterNow int64     `json:"-"`
+	BootTime  int64     `json:"boot_time"`
+	WANRX     uint64    `json:"wan_rx"`
+	WANTX     uint64    `json:"wan_tx"`
+	HaveWANCt bool      `json:"have_wan_counter"`
+	WANOK     int       `json:"wan_ok"` // 1 ok, 0 keine Antwort, -1 unbekannt
+	// OpenWrt/Asus: Tunnel-Einstellungen für den Server-Wechsel ohne GL.iNet-Schnittstelle
+	Native   map[string]NativeTun `json:"-"`
+	DefIface string               `json:"-"` // Schnittstelle der Standardroute des Routers
 }
 
 type Router struct {
@@ -97,6 +112,24 @@ type Router struct {
 	reconnecting bool
 	prevTR       map[string][3]float64 // iface -> rx, tx, zeit
 	gl           *GLState
+	needLogin    bool // Schlüssel wird nicht mehr angenommen (z. B. Asus nach Neustart)
+	glProbe      int  // OpenWrt erkannt: antwortet trotzdem die GL.iNet-Schnittstelle? 0 offen, 1 ja, -1 nein
+}
+
+// NeedLogin: Der Router lehnt den gespeicherten Schlüssel ab – einmal neu mit Passwort anmelden.
+func (r *Router) NeedLogin() bool {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	return r.needLogin
+}
+
+// PublicKey liefert den öffentlichen Schlüssel von RelayPing (zum Eintragen in der Router-Oberfläche).
+func (r *Router) PublicKey() string {
+	sg, err := r.signer()
+	if err != nil {
+		return ""
+	}
+	return strings.TrimSpace(string(ssh.MarshalAuthorizedKey(sg.PublicKey()))) + " relayping"
 }
 
 func (r *Router) keyFile() string { return r.app.store.File("relayping.key") }
@@ -149,8 +182,16 @@ func (r *Router) dial(auth []ssh.AuthMethod) (*ssh.Client, error) {
 	addr := net.JoinHostPort(c.RouterHost, strconv.Itoa(c.RouterPort))
 	cl, err := ssh.Dial("tcp", addr, cfg)
 	if err != nil {
+		if strings.Contains(err.Error(), "unable to authenticate") {
+			r.mu.Lock()
+			r.needLogin = true
+			r.mu.Unlock()
+		}
 		return nil, r.friendlyErr(err)
 	}
+	r.mu.Lock()
+	r.needLogin = false
+	r.mu.Unlock()
 	if r.newHostKey != nil {
 		hk := strings.TrimSpace(string(ssh.MarshalAuthorizedKey(r.newHostKey)))
 		_ = r.app.store.Update(func(c *Config) { c.HostKey = hk })
@@ -165,8 +206,8 @@ func (r *Router) friendlyErr(err error) error {
 	case errors.Is(err, errHostKeyChanged):
 		return r.hostKeyErr()
 	case strings.Contains(s, "unable to authenticate"):
-		return errors.New(r.app.tr("Anmeldung abgelehnt – Passwort prüfen (es ist dasselbe wie im GL.iNet-Admin-Panel)",
-			"Login rejected – check the password (it is the same as for the GL.iNet admin panel)"))
+		return errors.New(r.app.tr("Anmeldung abgelehnt – Benutzer und Passwort prüfen (GL.iNet: „root“ und das Admin-Passwort; Asus: Name und Passwort der Router-Oberfläche)",
+			"Login rejected – check user and password (GL.iNet: “root” and the admin password; Asus: the web interface's user name and password)"))
 	case strings.Contains(s, "i/o timeout") || strings.Contains(s, "no route") || strings.Contains(s, "connection refused"):
 		return fmt.Errorf(r.app.tr("Router nicht erreichbar (%v). Adresse prüfen und ob SSH aktiv ist",
 			"Router not reachable (%v). Check the address and whether SSH is enabled"), err)
@@ -224,6 +265,20 @@ func (r *Router) ConnectPassword(pw string) error {
 	return nil
 }
 
+// installKeyCmd hinterlegt den öffentlichen Schlüssel – das Einzige, was RelayPing beim
+// Anmelden auf dem Router ablegt. Router-Einstellungen (uci, nvram) bleiben unberührt.
+//   - OpenWrt/GL.iNet: /etc/dropbear/authorized_keys
+//   - Asus: /root/.ssh/authorized_keys. Die Asus-Firmware schreibt diese Datei beim Neustart
+//     aus ihrer Einstellung neu; dauerhaft wird der Schlüssel erst, wenn man ihn selbst in der
+//     Asus-Oberfläche (Administration → System → Autorisierte Schlüssel) einträgt.
+//   - sonst: ~/.ssh/authorized_keys
+const installKeyCmd = `umask 077; L='@KEY@'
+if [ -f /etc/openwrt_release ] && [ -d /etc/dropbear ]; then f=/etc/dropbear/authorized_keys
+elif command -v nvram >/dev/null 2>&1 && [ -n "$(nvram get productid 2>/dev/null)" ]; then
+  mkdir -p /root/.ssh 2>/dev/null; f=/root/.ssh/authorized_keys; [ -d /root/.ssh ] || { mkdir -p "$HOME/.ssh"; f="$HOME/.ssh/authorized_keys"; }
+else mkdir -p "$HOME/.ssh"; f="$HOME/.ssh/authorized_keys"; fi
+touch "$f"; grep -qxF "$L" "$f" || echo "$L" >> "$f"; echo OK`
+
 func (r *Router) installKey(cl *ssh.Client) error {
 	key, err := rsa.GenerateKey(rand.Reader, 3072)
 	if err != nil {
@@ -234,7 +289,7 @@ func (r *Router) installKey(cl *ssh.Client) error {
 		return err
 	}
 	line := strings.TrimSpace(string(ssh.MarshalAuthorizedKey(pub))) + " relayping"
-	cmd := `umask 077; if [ -f /etc/openwrt_release ] && [ -d /etc/dropbear ]; then f=/etc/dropbear/authorized_keys; else mkdir -p "$HOME/.ssh"; f="$HOME/.ssh/authorized_keys"; fi; touch "$f"; grep -qxF '` + line + `' "$f" || echo '` + line + `' >> "$f"; echo OK`
+	cmd := strings.ReplaceAll(installKeyCmd, "@KEY@", line)
 	out, err := runOn(cl, cmd, 15*time.Second)
 	if err != nil || !strings.Contains(out, "OK") {
 		return fmt.Errorf("%v %s", err, strings.TrimSpace(out))
@@ -254,6 +309,7 @@ func (r *Router) attach(cl *ssh.Client) {
 	r.client = cl
 	r.connected = true
 	r.lastErr = ""
+	r.glProbe = 0
 	r.mu.Unlock()
 	go r.keepalive(cl)
 	r.Refresh()
@@ -342,7 +398,8 @@ func (r *Router) reconnectLoop() {
 		}
 		if err := r.ConnectKey(); err == nil {
 			return
-		} else if errors.Is(err, errNoKey) || errors.Is(err, errHostKeyChanged) {
+		} else if errors.Is(err, errNoKey) || errors.Is(err, errHostKeyChanged) || r.NeedLogin() {
+			r.app.pushState()
 			return
 		}
 	}
@@ -394,8 +451,14 @@ func runOn(cl *ssh.Client, cmd string, timeout time.Duration) (string, error) {
 	}
 }
 
-const infoCmd = `W=""
-if command -v ubus >/dev/null 2>&1 && command -v jsonfilter >/dev/null 2>&1; then W=$(ubus call network.interface.wan status 2>/dev/null | jsonfilter -e '@.l3_device' 2>/dev/null); fi
+const infoCmd = `P=""
+if [ -f /etc/glversion ] || grep -qi '^gl' /tmp/sysinfo/model 2>/dev/null; then P=glinet
+elif [ -f /etc/openwrt_release ]; then P=openwrt
+elif command -v nvram >/dev/null 2>&1 && [ -n "$(nvram get productid 2>/dev/null)" ]; then P=asus; fi
+echo "PLAT=$P"
+W=""
+if [ "$P" = asus ]; then W=$(nvram get wan0_gw_ifname 2>/dev/null); [ -z "$W" ] && W=$(nvram get wan0_ifname 2>/dev/null); fi
+if [ -z "$W" ] && command -v ubus >/dev/null 2>&1 && command -v jsonfilter >/dev/null 2>&1; then W=$(ubus call network.interface.wan status 2>/dev/null | jsonfilter -e '@.l3_device' 2>/dev/null); fi
 [ -z "$W" ] && W=$(ip route show default 2>/dev/null | awk '{for(i=1;i<NF;i++) if($i=="dev"){print $(i+1); exit}}')
 echo "WAN=$W"
 ping -c 1 -i 0.2 -W 1 127.0.0.1 >/dev/null 2>&1 && echo "FASTPING=1"
@@ -410,11 +473,29 @@ for z in /sys/class/thermal/thermal_zone*/temp; do [ -r "$z" ] && echo "TEMP $(c
 echo "UP $(cut -d' ' -f1 /proc/uptime 2>/dev/null)"
 echo "NOW $(date +%s)"
 echo "MODEL=$(cat /tmp/sysinfo/model 2>/dev/null)"
+if [ "$P" = asus ]; then
+  echo "MODEL=ASUS $(nvram get productid 2>/dev/null)"
+  echo "FW=$(nvram get firmver 2>/dev/null).$(nvram get buildno 2>/dev/null)_$(nvram get extendno 2>/dev/null)"
+  echo "THIRD=$(nvram get 3rd-party 2>/dev/null)"
+  for n in 1 2 3 4 5; do echo "WGC $n $(nvram get wgc${n}_enable 2>/dev/null) $(nvram get wgc${n}_desc 2>/dev/null)"; done
+fi
+if [ "$P" = openwrt ]; then
+  echo "FW=$(. /etc/openwrt_release 2>/dev/null; echo "$DISTRIB_DESCRIPTION")"
+  uci -q show network 2>/dev/null | sed -n 's/^network\.\([^=.]*\)=wireguard_\(.*\)$/UPEER \2 \1/p'
+fi
+if [ "$P" = glinet ]; then echo "FW=$(cat /etc/glversion 2>/dev/null)"; fi
+echo "DEFRT $(ip route get 1.1.1.1 2>/dev/null | awk '{for(i=1;i<NF;i++) if($i=="dev"){print $(i+1); exit}}')"
+echo "BTIME $(awk '/^btime/{print $2}' /proc/stat 2>/dev/null)"
+if [ -n "$W" ]; then sed -n "s/^ *$W: *//p" /proc/net/dev 2>/dev/null | awk '{print "NETDEV", $1, $9}'; fi
+for i in $(wg show interfaces 2>/dev/null); do ( if ping -c 1 -W 2 -I "$i" 10.64.0.1 >/dev/null 2>&1; then echo "TP $i 1"; else echo "TP $i 0"; fi ) & done
+( O=""; [ -n "$W" ] && O="-I $W"; if ping -c 1 -W 2 $O 1.1.1.1 >/dev/null 2>&1 || ping -c 1 -W 2 $O 9.9.9.9 >/dev/null 2>&1; then echo "WANOK 1"; else echo "WANOK 0"; fi ) &
+wait
 `
 
 // parseInfo wertet die Ausgabe von infoCmd aus (ohne Seiteneffekte, testbar).
 func parseInfo(out string) RouterInfo {
-	var inf RouterInfo
+	inf := RouterInfo{WANOK: -1}
+	probes := map[string]bool{}
 	hs := map[string]int64{}
 	tr := map[string][2]uint64{}
 	sc := bufio.NewScanner(strings.NewReader(out))
@@ -435,13 +516,48 @@ func parseInfo(out string) RouterInfo {
 		case l == "HASWG=1":
 			inf.HasWG = true
 		case strings.HasPrefix(l, "MODEL="):
-			inf.Model = strings.TrimPrefix(l, "MODEL=")
+			if m := strings.TrimSpace(strings.TrimPrefix(l, "MODEL=")); m != "" && m != "ASUS" {
+				inf.Model = m
+			}
+		case strings.HasPrefix(l, "PLAT="):
+			switch p := strings.TrimPrefix(l, "PLAT="); p {
+			case "glinet", "openwrt", "asus":
+				inf.Platform = p
+			}
+		case strings.HasPrefix(l, "FW="):
+			inf.Firmware = strings.Trim(strings.TrimSpace(strings.TrimPrefix(l, "FW=")), "._'\"")
+		case strings.HasPrefix(l, "THIRD="):
+			inf.Merlin = strings.EqualFold(strings.TrimSpace(strings.TrimPrefix(l, "THIRD=")), "merlin")
+		case f[0] == "WGC" && len(f) >= 3:
+			n, err := strconv.Atoi(f[1])
+			if err != nil || n < 1 || n > 5 {
+				continue
+			}
+			if inf.Native == nil {
+				inf.Native = map[string]NativeTun{}
+			}
+			inf.Native["wgc"+f[1]] = NativeTun{Unit: n, Enabled: f[2] == "1", Desc: strings.Join(f[3:], " ")}
+		case f[0] == "UPEER" && len(f) == 3:
+			if !reIface.MatchString(f[1]) || !reUCISection.MatchString(f[2]) {
+				continue
+			}
+			if inf.Native == nil {
+				inf.Native = map[string]NativeTun{}
+			}
+			nt := inf.Native[f[1]]
+			nt.Peers++
+			nt.Section, nt.Enabled = f[2], true
+			inf.Native[f[1]] = nt
+		case f[0] == "DEFRT" && len(f) >= 2:
+			if reIface.MatchString(f[1]) {
+				inf.DefIface = f[1]
+			}
 		case f[0] == "EP" && len(f) >= 4:
 			host, _, err := net.SplitHostPort(f[3])
 			if err != nil {
 				continue
 			}
-			inf.Tunnels = append(inf.Tunnels, Tunnel{Iface: f[1], PubKey: f[2], IP: host, HSAge: -1})
+			inf.Tunnels = append(inf.Tunnels, Tunnel{Iface: f[1], PubKey: f[2], IP: host, HSAge: -1, Probe: -1})
 		case f[0] == "HS" && len(f) >= 4:
 			v, _ := strconv.ParseInt(f[3], 10, 64)
 			hs[f[1]+" "+f[2]] = v
@@ -470,6 +586,20 @@ func parseInfo(out string) RouterInfo {
 			}
 		case f[0] == "UP" && len(f) >= 2:
 			inf.UptimeS, _ = strconv.ParseFloat(f[1], 64)
+		case f[0] == "BTIME" && len(f) >= 2:
+			inf.BootTime, _ = strconv.ParseInt(f[1], 10, 64)
+		case f[0] == "NETDEV" && len(f) >= 3:
+			inf.WANRX, _ = strconv.ParseUint(f[1], 10, 64)
+			inf.WANTX, _ = strconv.ParseUint(f[2], 10, 64)
+			inf.HaveWANCt = true
+		case f[0] == "TP" && len(f) >= 3:
+			probes[f[1]] = f[2] == "1"
+		case f[0] == "WANOK" && len(f) >= 2:
+			if f[1] == "1" {
+				inf.WANOK = 1
+			} else {
+				inf.WANOK = 0
+			}
 		case f[0] == "NOW" && len(f) >= 2:
 			inf.RouterNow, _ = strconv.ParseInt(f[1], 10, 64)
 		}
@@ -486,6 +616,18 @@ func parseInfo(out string) RouterInfo {
 		if v, ok := tr[k]; ok {
 			t.RX, t.TX = v[0], v[1]
 		}
+		if p, ok := probes[t.Iface]; ok {
+			t.Probe = 0
+			if p {
+				t.Probe = 1
+			}
+		}
+	}
+	if inf.Platform == "asus" && inf.Firmware != "" {
+		inf.Firmware = strings.TrimSuffix(inf.Firmware, "_")
+		if inf.Merlin {
+			inf.Firmware += " (Asuswrt-Merlin)"
+		}
 	}
 	return inf
 }
@@ -497,6 +639,26 @@ func (r *Router) Refresh() {
 		return
 	}
 	inf := parseInfo(out)
+	if inf.Platform == "openwrt" || inf.Platform == "" {
+		// GL.iNet-Firmware ist OpenWrt – sicherheitshalber an der GL.iNet-Schnittstelle erkennen,
+		// damit Tunnel nie an der GL.iNet-Verwaltung vorbei umgestellt werden
+		r.mu.Lock()
+		probe := r.glProbe
+		r.mu.Unlock()
+		if probe == 0 {
+			var raw json.RawMessage
+			probe = -1
+			if r.RPC("vpn-client", "get_tunnel", nil, &raw) == nil {
+				probe = 1
+			}
+			r.mu.Lock()
+			r.glProbe = probe
+			r.mu.Unlock()
+		}
+		if probe == 1 {
+			inf.Platform = "glinet"
+		}
+	}
 	now := float64(time.Now().UnixMilli()) / 1000
 	r.mu.Lock()
 	if r.prevTR == nil {
@@ -514,7 +676,9 @@ func (r *Router) Refresh() {
 			t.TXRate = (float64(t.TX) - p[1]) / dt
 		}
 		r.prevTR[t.Iface] = [3]float64{float64(t.RX), float64(t.TX), now}
-		if gl != nil {
+		if inf.Platform == "openwrt" || inf.Platform == "asus" {
+			r.app.nativeTunnel(&inf, t)
+		} else if gl != nil {
 			if gt, ok := gl.ByIface(t.Iface); ok {
 				t.Name, t.TunnelID, t.CanSwitch = gt.Name, gt.TunnelID, gl.OK
 			}
